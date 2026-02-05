@@ -84,10 +84,22 @@ const Punch = () => {
                     setMessage('No employees registered yet. Please go to Add User.');
                 }
 
-                const processed = data.map(emp => ({
-                    ...emp,
-                    descriptor: new Float32Array(JSON.parse(emp.face_descriptor))
-                }));
+                const processed = data.map(emp => {
+                    let descriptorArray;
+                    try {
+                        descriptorArray = typeof emp.face_descriptor === 'string'
+                            ? JSON.parse(emp.face_descriptor)
+                            : emp.face_descriptor;
+                    } catch (e) {
+                        console.error('Descriptor parse error:', e);
+                        descriptorArray = [];
+                    }
+
+                    return {
+                        ...emp,
+                        descriptor: new Float32Array(descriptorArray)
+                    };
+                });
 
                 setEmployees(processed);
                 setMessage('Hands-free scanning active');
