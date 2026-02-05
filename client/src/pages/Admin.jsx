@@ -178,7 +178,7 @@ const Admin = () => {
                 <div className="flex items-center gap-3">
                     <div className="h-8 w-8 bg-indigo-500 rounded-full flex items-center justify-center font-bold text-white shadow-lg">S</div>
                     <div>
-                        <p className="text-xs text-slate-500 font-bold uppercase tracking-tighter">Incharge</p>
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-tighter">Admin</p>
                         <p className="text-sm font-semibold text-slate-300 truncate max-w-[150px] md:max-w-none">Srinivas Naidu</p>
                     </div>
                 </div>
