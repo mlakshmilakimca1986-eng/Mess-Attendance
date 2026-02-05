@@ -26,17 +26,16 @@ const Register = () => {
 
     useEffect(() => {
         const loadModels = async () => {
-            const MODEL_URL = '/models';
+            const MODEL_URL = window.location.origin + '/models';
             try {
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-                ]);
+                console.log('Loading models from:', MODEL_URL);
+                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
                 setModelsLoaded(true);
             } catch (err) {
                 console.error(err);
-                setMessage('Error loading AI models');
+                setMessage(`Error loading AI models: ${err.message}`);
             }
         };
         loadModels();
@@ -118,7 +117,7 @@ const Register = () => {
             animate={{ opacity: 1, x: 0 }}
             className="flex flex-col items-center justify-center min-h-[80vh] p-4"
         >
-            <div className="glass-card p-8 w-full max-w-4xl grid md:grid-cols-2 gap-8 relative overflow-hidden">
+            <div className="glass-card p-4 sm:p-8 w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-500/5 -skew-x-12 translate-x-1/2 pointer-events-none" />
 
                 <div className="relative z-10">
@@ -218,11 +217,12 @@ const Register = () => {
                     </form>
                 </div>
 
-                <div className="relative aspect-square rounded-2xl overflow-hidden bg-black/20 border border-white/10 shadow-inner group">
+                <div className="relative aspect-square rounded-2xl overflow-hidden bg-black/20 border border-white/10 shadow-inner group order-first md:order-last">
                     <video
                         ref={videoRef}
                         autoPlay
                         muted
+                        playsInline
                         className="w-full h-full object-cover"
                     />
 

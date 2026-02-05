@@ -23,17 +23,19 @@ const Punch = () => {
 
     useEffect(() => {
         const loadModels = async () => {
-            const MODEL_URL = '/models';
+            const MODEL_URL = window.location.origin + '/models';
             try {
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-                ]);
+                console.log('Loading models from:', MODEL_URL);
+                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                console.log('TinyFaceDetector loaded');
+                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+                console.log('FaceLandmark68Net loaded');
+                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+                console.log('FaceRecognitionNet loaded');
                 setModelsLoaded(true);
             } catch (err) {
-                console.error('Error loading models:', err);
-                setMessage('Error loading AI models');
+                console.error('Detailed model loading error:', err);
+                setMessage(`Error loading AI models: ${err.message || 'Check connection'}`);
             }
         };
         loadModels();
@@ -184,11 +186,12 @@ const Punch = () => {
 
                 <h2 className="text-3xl font-bold mb-6 text-indigo-400">Punch Attendance</h2>
 
-                <div className="relative aspect-video rounded-2xl overflow-hidden bg-black/20 mb-8 border border-white/10 group shadow-2xl">
+                <div className="relative aspect-square sm:aspect-video rounded-2xl overflow-hidden bg-black/20 mb-8 border border-white/10 group shadow-2xl">
                     <video
                         ref={videoRef}
                         autoPlay
                         muted
+                        playsInline
                         className="w-full h-full object-cover"
                     />
 
