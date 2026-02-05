@@ -71,18 +71,29 @@ const Punch = () => {
         const fetchEmployees = async () => {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/employees`);
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
                 const data = await response.json();
+
+                if (!Array.isArray(data)) {
+                    throw new Error('Invalid data format from server');
+                }
+
                 if (data.length === 0) {
                     setMessage('No employees registered yet. Please go to Add User.');
                 }
+
                 const processed = data.map(emp => ({
                     ...emp,
                     descriptor: new Float32Array(JSON.parse(emp.face_descriptor))
                 }));
+
                 setEmployees(processed);
+                setMessage('Hands-free scanning active');
             } catch (err) {
                 console.error('Error fetching employees:', err);
-                setMessage('Error: Could not load employee data.');
+                setMessage(`Connection Error: ${err.message}. Please check internet.`);
             }
         };
         fetchEmployees();
