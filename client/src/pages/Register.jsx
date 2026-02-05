@@ -127,8 +127,10 @@ const Register = () => {
                 <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-500/5 -skew-x-12 translate-x-1/2 pointer-events-none" />
 
                 <div className="relative z-10">
-                    <h2 className="text-3xl font-bold mb-6 text-indigo-400">Register Employee</h2>
-                    <form onSubmit={handleRegister} className="space-y-6">
+                    <h2 className="text-3xl font-bold mb-2 text-indigo-400">Register Employee</h2>
+                    <p className="text-slate-500 text-sm mb-6">Step 1: Details {'->'} Step 2: Capture {'->'} Step 3: Save</p>
+
+                    <form onSubmit={handleRegister} className="space-y-5">
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -144,7 +146,9 @@ const Register = () => {
                                 placeholder="e.g. John Doe"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
+                                minLength={3}
                                 required
+                                autoFocus
                             />
                         </motion.div>
                         <motion.div
@@ -197,15 +201,20 @@ const Register = () => {
                             )}
 
                             <motion.button
-                                whileHover={{ scale: captured ? 1.02 : 1 }}
-                                whileTap={{ scale: captured ? 0.98 : 1 }}
+                                whileHover={{ scale: (captured && name && employeeId) ? 1.02 : 1 }}
+                                whileTap={{ scale: (captured && name && employeeId) ? 0.98 : 1 }}
                                 type="submit"
                                 disabled={loading || !captured || !name || !employeeId}
-                                className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                                className={`btn-primary w-full shadow-xl transition-all ${(!captured || !name || !employeeId) ? 'opacity-30' : 'opacity-100'}`}
                                 style={{ background: 'linear-gradient(90deg, #6366f1, #a855f7)' }}
                             >
-                                {loading ? 'Processing...' : 'Register Employee'}
+                                {loading ? 'Saving to Database...' : 'Register Employee'}
                             </motion.button>
+                            {!captured && (
+                                <p className="text-[10px] text-center text-slate-500 font-semibold uppercase tracking-widest">
+                                    Capture face photo to enable registration
+                                </p>
+                            )}
                         </div>
 
                         <AnimatePresence>

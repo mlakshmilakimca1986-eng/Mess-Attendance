@@ -76,8 +76,8 @@ app.post('/api/employees', async (req, res) => {
     const { employeeId, name, faceDescriptor, deviceId } = req.body;
     try {
         await pool.query(
-            'INSERT INTO employees (employee_id, name, face_descriptor, device_id) VALUES (?, ?, ?, ?)',
-            [employeeId, name, JSON.stringify(faceDescriptor), deviceId]
+            'INSERT INTO employees (employee_id, name, face_descriptor, device_id) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = ?, face_descriptor = ?, device_id = ?',
+            [employeeId, name, JSON.stringify(faceDescriptor), deviceId, name, JSON.stringify(faceDescriptor), deviceId]
         );
         res.status(201).json({ message: 'Employee registered' });
     } catch (err) {
