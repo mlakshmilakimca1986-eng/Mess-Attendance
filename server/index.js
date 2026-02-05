@@ -142,7 +142,9 @@ app.post('/api/attendance', async (req, res) => {
         'MASTER-1',
         'MASTER-2',
         'S_NAIDU_MOBILE',
-        'ADMIN_MOBILE'
+        'ADMIN_MOBILE',
+        'INCHARGE-1',
+        'INCHARGE-2'
     ];
 
     try {
