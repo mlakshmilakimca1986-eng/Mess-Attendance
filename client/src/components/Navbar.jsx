@@ -5,13 +5,16 @@ import { Camera, LayoutDashboard, UserPlus, LogOut } from 'lucide-react';
 const Navbar = () => {
     return (
         <nav className="glass-card m-4 p-4 flex justify-between items-center bg-opacity-10 backdrop-blur-md">
-            <div className="flex items-center gap-2">
-                <div className="bg-indigo-600 p-2 rounded-lg">
-                    <Camera className="text-white" size={24} />
+            <div className="flex items-center gap-4">
+                <img src="/logo.png" alt="Sri Chaitanya" className="h-12 w-auto object-contain" />
+                <div className="flex flex-col">
+                    <span className="text-lg font-bold text-white leading-tight">
+                        Sri Chaitanya Educational Institutions
+                    </span>
+                    <span className="text-xs font-semibold text-indigo-400 tracking-wider">
+                        ECITY BRANCH • MESS ATTENDANCE
+                    </span>
                 </div>
-                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
-                    MessAttend
-                </span>
             </div>
 
             <div className="flex gap-6">
