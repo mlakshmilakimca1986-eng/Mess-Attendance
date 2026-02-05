@@ -133,7 +133,17 @@ app.post('/api/attendance', async (req, res) => {
         .filter(id => id !== "");
 
     // Hardcoded Master IDs for convenience (fallback)
-    const MASTER_WHITELIST = ['DEV-J7CKVKT00', 'DEV-WCN0KP05E', 'DEV-RY5EBFBN7', 'GOPI-MESS', 'MASTER-1', 'MASTER-2'];
+    const MASTER_WHITELIST = [
+        'DEV-8PE6WVDNZ',
+        'DEV-RY5EBFBN7',
+        'DEV-J7CKVKT00',
+        'DEV-WCN0KP05E',
+        'GOPI-MESS',
+        'MASTER-1',
+        'MASTER-2',
+        'S_NAIDU_MOBILE',
+        'ADMIN_MOBILE'
+    ];
 
     try {
         // 1. Verify Master Device Authorization
