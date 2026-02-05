@@ -128,18 +128,24 @@ app.post('/api/attendance', async (req, res) => {
     const now = new Date();
 
     // Configuration
-    const MESS_LAT = parseFloat(process.env.MESS_LAT || "12.845196");
-    const MESS_LON = parseFloat(process.env.MESS_LON || "77.702240");
-    const ALLOWED_RADIUS = parseInt(process.env.ALLOWED_RADIUS || "200");
-    const AUTHORIZED_DEVICES = (process.env.AUTHORIZED_DEVICES || "").split(',').map(id => id.trim());
+    const AUTHORIZED_DEVICES = (process.env.AUTHORIZED_DEVICES || "").split(',')
+        .map(id => id.trim())
+        .filter(id => id !== "");
+
+    // Hardcoded Master IDs for convenience (fallback)
+    const MASTER_WHITELIST = ['DEV-J7CKVKT00', 'DEV-WCN0KP05E', 'DEV-RY5EBFBN7', 'GOPI-MESS', 'MASTER-1', 'MASTER-2'];
 
     try {
         // 1. Verify Master Device Authorization
-        if (AUTHORIZED_DEVICES.length > 0 && AUTHORIZED_DEVICES[0] !== "" && !AUTHORIZED_DEVICES.includes(deviceId)) {
-            return res.status(403).json({
-                error: 'This device is not authorized for attendance. Please use the Incharge mobile.',
-                details: `Device ID: ${deviceId}`
-            });
+        const isAuthorized = AUTHORIZED_DEVICES.includes(deviceId) || MASTER_WHITELIST.includes(deviceId);
+
+        if (AUTHORIZED_DEVICES.length > 0 || MASTER_WHITELIST.length > 0) {
+            if (!isAuthorized) {
+                return res.status(403).json({
+                    error: 'This device is not authorized for attendance. Please use the Incharge mobile.',
+                    details: `Device ID: ${deviceId}`
+                });
+            }
         }
 
         // Geofencing removed as per user request. Security relies on Authorized Device IDs.

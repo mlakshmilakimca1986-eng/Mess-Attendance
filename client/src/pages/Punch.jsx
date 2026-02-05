@@ -13,13 +13,23 @@ const Punch = () => {
     const [lastPunchTime, setLastPunchTime] = useState(0);
     const [punchData, setPunchData] = useState(null);
 
-    const getDeviceId = () => {
-        let deviceId = localStorage.getItem('mess_attendance_device_id');
+    const [deviceId, setDeviceId] = useState(localStorage.getItem('mess_attendance_device_id') || '');
+
+    useEffect(() => {
         if (!deviceId) {
-            deviceId = 'DEV-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-            localStorage.setItem('mess_attendance_device_id', deviceId);
+            const newId = 'DEV-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            localStorage.setItem('mess_attendance_device_id', newId);
+            setDeviceId(newId);
         }
-        return deviceId;
+    }, []);
+
+    const handleEditDeviceId = () => {
+        const newId = prompt('Enter Device Name (example: MOBILE-1):', deviceId);
+        if (newId && newId.trim()) {
+            localStorage.setItem('mess_attendance_device_id', newId.trim().toUpperCase());
+            setDeviceId(newId.trim().toUpperCase());
+            window.location.reload(); // Reload to refresh everything
+        }
     };
 
     useEffect(() => {
@@ -158,7 +168,7 @@ const Punch = () => {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             employeeId: matchedEmp.employee_id,
-                            deviceId: getDeviceId()
+                            deviceId: deviceId
                         })
                     });
 
@@ -295,9 +305,12 @@ const Punch = () => {
                         Live Biometric Tracking Enabled
                     </div>
 
-                    <div className="text-[10px] text-slate-600 font-mono tracking-widest uppercase opacity-50 hover:opacity-100 transition-opacity">
-                        Device ID: {getDeviceId()}
-                    </div>
+                    <button
+                        onClick={handleEditDeviceId}
+                        className="text-[10px] text-indigo-400 font-mono tracking-widest uppercase bg-indigo-500/5 px-2 py-1 rounded border border-indigo-500/10 hover:bg-indigo-500/20 transition-all"
+                    >
+                        Device ID: {deviceId} <span className="ml-1 opacity-50 underline">(Edit)</span>
+                    </button>
                 </div>
             </div>
         </motion.div >
