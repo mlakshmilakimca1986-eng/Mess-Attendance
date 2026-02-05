@@ -92,7 +92,7 @@ app.post('/api/employees', async (req, res) => {
         const [allEmployees] = await pool.query('SELECT employee_id, name, face_descriptor FROM employees');
 
         const newDescriptor = faceDescriptor; // Array of 128 floats
-        const DUPLICATE_THRESHOLD = 0.45; // Strict threshold for duplicates
+        const DUPLICATE_THRESHOLD = 0.55; // Relaxed threshold to catch same person
 
         for (const emp of allEmployees) {
             let existingDescriptor;
@@ -108,7 +108,10 @@ app.post('/api/employees', async (req, res) => {
                         newDescriptor.reduce((sum, val, i) => sum + Math.pow(val - existingDescriptor[i], 2), 0)
                     );
 
+                    console.log(`Comparing with ${emp.name} (${emp.employee_id}): Distance = ${distance}`);
+
                     if (distance < DUPLICATE_THRESHOLD) {
+                        console.log(`Duplicate found! ${distance} < ${DUPLICATE_THRESHOLD}`);
                         return res.status(409).json({
                             error: `Duplicate Face! This person is already registered as ${emp.name} (${emp.employee_id}).`
                         });
