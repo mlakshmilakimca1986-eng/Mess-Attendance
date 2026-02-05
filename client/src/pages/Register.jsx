@@ -270,6 +270,10 @@ const Register = () => {
                     <div className="absolute inset-4 border-2 border-white/5 pointer-events-none rounded-xl" />
                 </div>
             </div>
+
+            <div className="mt-6 text-[10px] text-slate-600 font-mono tracking-widest uppercase opacity-40 hover:opacity-100 transition-opacity">
+                Device ID: {getDeviceId()}
+            </div>
         </motion.div >
     );
 };

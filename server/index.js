@@ -108,27 +108,25 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-// Punch Attendance (Auto In/Out with Device & Location Verification)
+// Punch Attendance (Auto In/Out with Master Device & Location Verification)
 app.post('/api/attendance', async (req, res) => {
     const { employeeId, deviceId, latitude, longitude } = req.body;
     const today = new Date().toISOString().split('T')[0];
     const now = new Date();
 
-    // Mess Location (Defaults to a sample coordinate if not in .env)
-    const MESS_LAT = parseFloat(process.env.MESS_LAT || "17.4065");
-    const MESS_LON = parseFloat(process.env.MESS_LON || "78.4772");
-    const ALLOWED_RADIUS = parseInt(process.env.ALLOWED_RADIUS || "200"); // meters
+    // Configuration
+    const MESS_LAT = parseFloat(process.env.MESS_LAT || "12.845196");
+    const MESS_LON = parseFloat(process.env.MESS_LON || "77.702240");
+    const ALLOWED_RADIUS = parseInt(process.env.ALLOWED_RADIUS || "200");
+    const AUTHORIZED_DEVICES = (process.env.AUTHORIZED_DEVICES || "").split(',').map(id => id.trim());
 
     try {
-        // 1. Verify Device ID
-        const [[employee]] = await pool.query('SELECT device_id FROM employees WHERE employee_id = ?', [employeeId]);
-
-        if (!employee) {
-            return res.status(404).json({ error: 'Employee not found' });
-        }
-
-        if (employee.device_id && employee.device_id !== deviceId) {
-            return res.status(403).json({ error: 'Unauthorized device. Please use your registered mobile.' });
+        // 1. Verify Master Device Authorization
+        if (AUTHORIZED_DEVICES.length > 0 && AUTHORIZED_DEVICES[0] !== "" && !AUTHORIZED_DEVICES.includes(deviceId)) {
+            return res.status(403).json({
+                error: 'This device is not authorized for attendance. Please use the Incharge mobile.',
+                details: `Device ID: ${deviceId}`
+            });
         }
 
         // 2. Verify Geofence
@@ -144,6 +142,9 @@ app.post('/api/attendance', async (req, res) => {
         }
 
         // 3. Determine Punch Type (Auto)
+        const [[employeeExists]] = await pool.query('SELECT employee_id FROM employees WHERE employee_id = ?', [employeeId]);
+        if (!employeeExists) return res.status(404).json({ error: 'Employee not found' });
+
         const [[existingRecord]] = await pool.query(
             'SELECT * FROM attendance WHERE employee_id = ? AND date = ?',
             [employeeId, today]
@@ -151,21 +152,18 @@ app.post('/api/attendance', async (req, res) => {
 
         let type = 'in';
         if (!existingRecord) {
-            // First punch of the day -> IN
             await pool.query(
                 'INSERT INTO attendance (employee_id, punch_in, date) VALUES (?, ?, ?)',
                 [employeeId, now, today]
             );
             type = 'in';
         } else if (existingRecord.punch_out === null) {
-            // Already punched in but not out -> OUT
             await pool.query(
                 'UPDATE attendance SET punch_out = ? WHERE id = ?',
                 [now, existingRecord.id]
             );
             type = 'out';
         } else {
-            // Already completed shift for today
             return res.status(400).json({ error: 'Attendance already completed for today.' });
         }
 

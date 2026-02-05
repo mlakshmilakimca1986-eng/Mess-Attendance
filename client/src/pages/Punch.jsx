@@ -251,10 +251,14 @@ const Punch = () => {
                     </p>
                 </div>
 
-                <div className="mt-8 flex flex-col items-center gap-2">
+                <div className="mt-8 flex flex-col items-center gap-4">
                     <div className="flex items-center gap-2 text-slate-500 text-sm">
                         <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
                         Live Biometric Tracking Enabled
+                    </div>
+
+                    <div className="text-[10px] text-slate-600 font-mono tracking-widest uppercase opacity-50 hover:opacity-100 transition-opacity">
+                        Device ID: {getDeviceId()}
                     </div>
                 </div>
             </div>
