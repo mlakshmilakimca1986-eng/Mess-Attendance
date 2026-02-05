@@ -92,11 +92,32 @@ app.get('/api/employees', async (req, res) => {
     }
 });
 
-// Punch Attendance (Auto In/Out with Device Verification)
+// Helper to calculate distance between two coordinates in meters
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth radius in meters
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+        Math.cos(φ1) * Math.cos(φ2) *
+        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+}
+
+// Punch Attendance (Auto In/Out with Device & Location Verification)
 app.post('/api/attendance', async (req, res) => {
-    const { employeeId, deviceId } = req.body;
+    const { employeeId, deviceId, latitude, longitude } = req.body;
     const today = new Date().toISOString().split('T')[0];
     const now = new Date();
+
+    // Mess Location (Defaults to a sample coordinate if not in .env)
+    const MESS_LAT = parseFloat(process.env.MESS_LAT || "17.4065");
+    const MESS_LON = parseFloat(process.env.MESS_LON || "78.4772");
+    const ALLOWED_RADIUS = parseInt(process.env.ALLOWED_RADIUS || "200"); // meters
 
     try {
         // 1. Verify Device ID
@@ -110,7 +131,19 @@ app.post('/api/attendance', async (req, res) => {
             return res.status(403).json({ error: 'Unauthorized device. Please use your registered mobile.' });
         }
 
-        // 2. Determine Punch Type (Auto)
+        // 2. Verify Geofence
+        if (!latitude || !longitude) {
+            return res.status(400).json({ error: 'Location access required for attendance.' });
+        }
+
+        const distance = calculateDistance(latitude, longitude, MESS_LAT, MESS_LON);
+        if (distance > ALLOWED_RADIUS) {
+            return res.status(403).json({
+                error: `Too far from Mess! You are ${Math.round(distance)}m away. Allowed: ${ALLOWED_RADIUS}m`
+            });
+        }
+
+        // 3. Determine Punch Type (Auto)
         const [[existingRecord]] = await pool.query(
             'SELECT * FROM attendance WHERE employee_id = ? AND date = ?',
             [employeeId, today]

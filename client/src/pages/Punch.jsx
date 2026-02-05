@@ -88,9 +88,42 @@ const Punch = () => {
         return () => clearInterval(interval);
     }, [modelsLoaded, employees, detecting, status, lastPunchTime]);
 
+    // Helper to get current location
+    const getLocation = () => {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('Geolocation is not supported by your browser'));
+            } else {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        resolve({
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        });
+                    },
+                    (err) => {
+                        reject(err);
+                    },
+                    { enableHighAccuracy: true, timeout: 5000 }
+                );
+            }
+        });
+    };
+
     const handleAutoScan = async () => {
         setDetecting(true);
         try {
+            // Get location first (Geofencing requirement)
+            let location = null;
+            try {
+                location = await getLocation();
+            } catch (locErr) {
+                setStatus('error');
+                setMessage('Please enable GPS/Location to punch attendance.');
+                setDetecting(false);
+                return;
+            }
+
             const detections = await faceapi.detectSingleFace(
                 videoRef.current,
                 new faceapi.TinyFaceDetectorOptions()
@@ -107,13 +140,15 @@ const Punch = () => {
                 if (bestMatch.label !== 'unknown') {
                     const matchedEmp = employees.find(e => e.employee_id === bestMatch.label);
 
-                    // Call backend with Auto-Logic
+                    // Call backend with Auto-Logic and Geolocation
                     const response = await fetch(`${API_BASE_URL}/api/attendance`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             employeeId: matchedEmp.employee_id,
-                            deviceId: getDeviceId()
+                            deviceId: getDeviceId(),
+                            latitude: location.lat,
+                            longitude: location.lng
                         })
                     });
 
