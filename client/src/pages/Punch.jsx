@@ -23,19 +23,24 @@ const Punch = () => {
 
     useEffect(() => {
         const loadModels = async () => {
-            const MODEL_URL = window.location.origin + '/models';
+            const MODEL_URL = '/models';
             try {
-                console.log('Loading models from:', MODEL_URL);
+                console.log('Loading TinyFaceDetector...');
                 await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-                console.log('TinyFaceDetector loaded');
+
+                console.log('Loading FaceLandmark68Net...');
                 await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-                console.log('FaceLandmark68Net loaded');
+
+                console.log('Loading FaceRecognitionNet...');
                 await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-                console.log('FaceRecognitionNet loaded');
+
+                console.log('All models loaded successfully');
                 setModelsLoaded(true);
             } catch (err) {
                 console.error('Detailed model loading error:', err);
-                setMessage(`Error loading AI models: ${err.message || 'Check connection'}`);
+                // Clearer error for the UI
+                const errMsg = err.message || 'Unknown error';
+                setMessage(`AI Error: ${errMsg.substring(0, 100)}...`);
             }
         };
         loadModels();
