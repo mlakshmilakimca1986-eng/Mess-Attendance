@@ -49,11 +49,14 @@ const Punch = () => {
 
     const startVideo = () => {
         navigator.mediaDevices
-            .getUserMedia({ video: { width: 640, height: 480 } })
+            .getUserMedia({ video: { facingMode: 'user' } })
             .then((stream) => {
                 videoRef.current.srcObject = stream;
             })
-            .catch((err) => console.error(err));
+            .catch((err) => {
+                console.error(err);
+                setMessage('Camera error: Please refresh.');
+            });
     };
 
     useEffect(() => {
@@ -69,6 +72,9 @@ const Punch = () => {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/employees`);
                 const data = await response.json();
+                if (data.length === 0) {
+                    setMessage('No employees registered yet. Please go to Add User.');
+                }
                 const processed = data.map(emp => ({
                     ...emp,
                     descriptor: new Float32Array(JSON.parse(emp.face_descriptor))
@@ -76,6 +82,7 @@ const Punch = () => {
                 setEmployees(processed);
             } catch (err) {
                 console.error('Error fetching employees:', err);
+                setMessage('Error: Could not load employee data.');
             }
         };
         fetchEmployees();
@@ -100,24 +107,25 @@ const Punch = () => {
 
 
     const handleAutoScan = async () => {
+        if (detecting || !videoRef.current) return;
         setDetecting(true);
         try {
             const detections = await faceapi.detectSingleFace(
                 videoRef.current,
-                new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.4 })
+                new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.3 })
             ).withFaceLandmarks().withFaceDescriptor();
 
             if (detections) {
-                setMessage('Face found! Verifying...');
+                setMessage('Face detected! Verifying...');
                 const faceMatcher = new faceapi.FaceMatcher(
                     employees.map(emp => new faceapi.LabeledFaceDescriptors(emp.employee_id, [emp.descriptor])),
-                    0.6 // Slightly looser for easier daily recognition
+                    0.55 // Reverting to safer threshold
                 );
 
                 const bestMatch = faceMatcher.findBestMatch(detections.descriptor);
 
                 if (bestMatch.label !== 'unknown') {
-                    setMessage('Identity confirmed. Punching...');
+                    setMessage(`Hello ${bestMatch.label}, punching...`);
 
                     const matchedEmp = employees.find(e => e.employee_id === bestMatch.label);
 
@@ -136,26 +144,27 @@ const Punch = () => {
                     if (response.ok) {
                         setStatus('success');
                         setPunchData(result);
-                        setMessage(`${result.message}. Have a nice day, ${matchedEmp.name}!`);
+                        setMessage(`Success! ${result.message}`);
                         setLastPunchTime(Date.now());
                         setTimeout(() => {
                             setStatus(null);
                             setPunchData(null);
+                            setMessage('Hands-free scanning active');
                         }, 8000);
                     } else {
                         setStatus('error');
-                        setMessage(result.error || 'System error. Contact admin.');
+                        setMessage(result.error || 'Check authorization.');
                         setTimeout(() => setStatus(null), 3000);
                     }
                 } else {
-                    setMessage('Unknown face. Please use the registered face.');
-                    setTimeout(() => setMessage('Hands-free scanning active'), 2000);
+                    setMessage('Scanning... Try adjusting lighting');
                 }
             } else {
-                setMessage('Hands-free scanning active');
+                // Keep current message
             }
         } catch (err) {
-            console.error(err);
+            console.error('Scan error:', err);
+            setMessage('Scanner busy...');
         } finally {
             setDetecting(false);
         }
