@@ -21,6 +21,9 @@ const dbConfig = {
     },
 };
 
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "srinivasnaidu.m@srichaitanyaschool.net";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Admin@123";
+
 let pool;
 
 async function initDB() {
@@ -89,6 +92,16 @@ app.get('/api/employees', async (req, res) => {
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+// Admin Login
+app.post('/api/admin/login', (req, res) => {
+    const { email, password } = req.body;
+    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+        res.json({ success: true, message: 'Login successful' });
+    } else {
+        res.status(401).json({ success: false, error: 'Invalid admin credentials' });
     }
 });
 
