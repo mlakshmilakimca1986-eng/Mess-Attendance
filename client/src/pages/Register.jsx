@@ -14,6 +14,16 @@ const Register = () => {
     const [modelsLoaded, setModelsLoaded] = useState(false);
     const [message, setMessage] = useState('');
 
+    // Generate or retrieve a unique device ID (Simulation of IMEI requirement)
+    const getDeviceId = () => {
+        let deviceId = localStorage.getItem('mess_attendance_device_id');
+        if (!deviceId) {
+            deviceId = 'DEV-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            localStorage.setItem('mess_attendance_device_id', deviceId);
+        }
+        return deviceId;
+    };
+
     useEffect(() => {
         const loadModels = async () => {
             const MODEL_URL = '/models';
@@ -70,6 +80,8 @@ const Register = () => {
         if (!descriptor || !name || !employeeId) return;
 
         setLoading(true);
+        const deviceId = getDeviceId();
+
         try {
             const response = await fetch(`${API_BASE_URL}/api/employees`, {
                 method: 'POST',
@@ -77,18 +89,20 @@ const Register = () => {
                 body: JSON.stringify({
                     employeeId,
                     name,
-                    faceDescriptor: descriptor
+                    faceDescriptor: descriptor,
+                    deviceId: deviceId
                 })
             });
 
             if (response.ok) {
-                setMessage('Employee registered successfully!');
+                setMessage('Employee registered with this mobile successfully!');
                 setName('');
                 setEmployeeId('');
                 setCaptured(false);
                 setDescriptor(null);
             } else {
-                setMessage('Registration failed.');
+                const data = await response.json();
+                setMessage(data.error || 'Registration failed.');
             }
         } catch (err) {
             console.error(err);

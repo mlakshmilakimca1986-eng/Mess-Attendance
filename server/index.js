@@ -36,9 +36,16 @@ async function initDB() {
                 employee_id VARCHAR(50) UNIQUE NOT NULL,
                 name VARCHAR(100) NOT NULL,
                 face_descriptor JSON NOT NULL,
+                device_id VARCHAR(255),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+
+        // Check if device_id column exists (for existing tables)
+        const [columns] = await connection.query('SHOW COLUMNS FROM employees LIKE "device_id"');
+        if (columns.length === 0) {
+            await connection.query('ALTER TABLE employees ADD COLUMN device_id VARCHAR(255)');
+        }
 
         await connection.query(`
             CREATE TABLE IF NOT EXISTS attendance (
@@ -63,11 +70,11 @@ app.get('/', (req, res) => {
 
 // Register Employee
 app.post('/api/employees', async (req, res) => {
-    const { employeeId, name, faceDescriptor } = req.body;
+    const { employeeId, name, faceDescriptor, deviceId } = req.body;
     try {
         await pool.query(
-            'INSERT INTO employees (employee_id, name, face_descriptor) VALUES (?, ?, ?)',
-            [employeeId, name, JSON.stringify(faceDescriptor)]
+            'INSERT INTO employees (employee_id, name, face_descriptor, device_id) VALUES (?, ?, ?, ?)',
+            [employeeId, name, JSON.stringify(faceDescriptor), deviceId]
         );
         res.status(201).json({ message: 'Employee registered' });
     } catch (err) {
@@ -78,32 +85,58 @@ app.post('/api/employees', async (req, res) => {
 // Get all employees (for face matching on client)
 app.get('/api/employees', async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT employee_id, name, face_descriptor FROM employees');
+        const [rows] = await pool.query('SELECT employee_id, name, face_descriptor, device_id FROM employees');
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Punch Attendance
+// Punch Attendance (Auto In/Out with Device Verification)
 app.post('/api/attendance', async (req, res) => {
-    const { employeeId, type } = req.body; // type: 'in' or 'out'
+    const { employeeId, deviceId } = req.body;
     const today = new Date().toISOString().split('T')[0];
     const now = new Date();
 
     try {
-        if (type === 'in') {
+        // 1. Verify Device ID
+        const [[employee]] = await pool.query('SELECT device_id FROM employees WHERE employee_id = ?', [employeeId]);
+
+        if (!employee) {
+            return res.status(404).json({ error: 'Employee not found' });
+        }
+
+        if (employee.device_id && employee.device_id !== deviceId) {
+            return res.status(403).json({ error: 'Unauthorized device. Please use your registered mobile.' });
+        }
+
+        // 2. Determine Punch Type (Auto)
+        const [[existingRecord]] = await pool.query(
+            'SELECT * FROM attendance WHERE employee_id = ? AND date = ?',
+            [employeeId, today]
+        );
+
+        let type = 'in';
+        if (!existingRecord) {
+            // First punch of the day -> IN
             await pool.query(
                 'INSERT INTO attendance (employee_id, punch_in, date) VALUES (?, ?, ?)',
                 [employeeId, now, today]
             );
-        } else {
+            type = 'in';
+        } else if (existingRecord.punch_out === null) {
+            // Already punched in but not out -> OUT
             await pool.query(
-                'UPDATE attendance SET punch_out = ? WHERE employee_id = ? AND date = ? AND punch_out IS NULL',
-                [now, employeeId, today]
+                'UPDATE attendance SET punch_out = ? WHERE id = ?',
+                [now, existingRecord.id]
             );
+            type = 'out';
+        } else {
+            // Already completed shift for today
+            return res.status(400).json({ error: 'Attendance already completed for today.' });
         }
-        res.json({ message: `Punched ${type} successfully`, time: now });
+
+        res.json({ message: `Successfully punched ${type.toUpperCase()}`, type, time: now });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

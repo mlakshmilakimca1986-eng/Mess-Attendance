@@ -9,7 +9,17 @@ const Punch = () => {
     const [modelsLoaded, setModelsLoaded] = useState(false);
     const [detecting, setDetecting] = useState(false);
     const [status, setStatus] = useState(null); // 'success', 'error', null
-    const [message, setMessage] = useState('Position your face in the camera');
+    const [message, setMessage] = useState('Hands-free scanning active');
+    const [lastPunchTime, setLastPunchTime] = useState(0);
+
+    const getDeviceId = () => {
+        let deviceId = localStorage.getItem('mess_attendance_device_id');
+        if (!deviceId) {
+            deviceId = 'DEV-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            localStorage.setItem('mess_attendance_device_id', deviceId);
+        }
+        return deviceId;
+    };
 
     useEffect(() => {
         const loadModels = async () => {
@@ -63,14 +73,23 @@ const Punch = () => {
         fetchEmployees();
     }, []);
 
-    const handlePunch = async (type) => {
-        if (!videoRef.current || employees.length === 0) {
-            if (employees.length === 0) setMessage('No employees registered yet.');
-            return;
-        }
-        setDetecting(true);
-        setMessage(`Scanning for ${type.toUpperCase()}...`);
+    // Continuous Auto-Detection Loop
+    useEffect(() => {
+        let interval;
+        if (modelsLoaded && employees.length > 0 && !status) {
+            interval = setInterval(async () => {
+                if (detecting || Date.now() - lastPunchTime < 10000) return; // 10s cooldown
 
+                if (videoRef.current && videoRef.current.readyState === 4) {
+                    await handleAutoScan();
+                }
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [modelsLoaded, employees, detecting, status, lastPunchTime]);
+
+    const handleAutoScan = async () => {
+        setDetecting(true);
         try {
             const detections = await faceapi.detectSingleFace(
                 videoRef.current,
@@ -80,7 +99,7 @@ const Punch = () => {
             if (detections) {
                 const faceMatcher = new faceapi.FaceMatcher(
                     employees.map(emp => new faceapi.LabeledFaceDescriptors(emp.employee_id, [emp.descriptor])),
-                    0.55 // slightly stricter threshold
+                    0.55
                 );
 
                 const bestMatch = faceMatcher.findBestMatch(detections.descriptor);
@@ -88,41 +107,32 @@ const Punch = () => {
                 if (bestMatch.label !== 'unknown') {
                     const matchedEmp = employees.find(e => e.employee_id === bestMatch.label);
 
+                    // Call backend with Auto-Logic
                     const response = await fetch(`${API_BASE_URL}/api/attendance`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             employeeId: matchedEmp.employee_id,
-                            type: type
+                            deviceId: getDeviceId()
                         })
                     });
 
+                    const result = await response.json();
+
                     if (response.ok) {
                         setStatus('success');
-                        setMessage(`Welcome, ${matchedEmp.name}!`);
+                        setMessage(`${result.message}. Have a nice day, ${matchedEmp.name}!`);
+                        setLastPunchTime(Date.now());
+                        setTimeout(() => setStatus(null), 5000);
                     } else {
                         setStatus('error');
-                        setMessage('Database error. Contact admin.');
+                        setMessage(result.error || 'System error. Contact admin.');
+                        setTimeout(() => setStatus(null), 3000);
                     }
-                } else {
-                    setStatus('error');
-                    setMessage('Face not recognized. Please register.');
                 }
-
-                setTimeout(() => {
-                    setStatus(null);
-                    setMessage('Position your face in the camera');
-                }, 3000);
-
-            } else {
-                setStatus('error');
-                setMessage('No face detected. Try again.');
-                setTimeout(() => setStatus(null), 2000);
             }
         } catch (err) {
             console.error(err);
-            setStatus('error');
-            setMessage('Scanning failed.');
         } finally {
             setDetecting(false);
         }
@@ -200,33 +210,17 @@ const Punch = () => {
                     </AnimatePresence>
                 </div>
 
-                <div className="mb-8 min-h-[2rem]">
-                    <p className={`text-lg font-medium transition-colors ${status === 'error' ? 'text-rose-400' : status === 'success' ? 'text-emerald-400' : 'text-slate-300'}`}>
+                <div className="mb-0 min-h-[4rem] flex items-center justify-center">
+                    <p className={`text-xl font-semibold transition-all duration-300 ${status === 'error' ? 'text-rose-400 scale-110' : status === 'success' ? 'text-emerald-400 scale-110' : 'text-slate-400'}`}>
                         {message}
                     </p>
                 </div>
 
-                <div className="flex gap-4 justify-center">
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handlePunch('in')}
-                        disabled={!modelsLoaded || detecting}
-                        className="btn-primary flex-1 max-w-[200px] flex items-center justify-center gap-2 group disabled:opacity-50"
-                        style={{ background: 'linear-gradient(90deg, #10b981, #059669)' }}
-                    >
-                        <span>Punch IN</span>
-                    </motion.button>
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handlePunch('out')}
-                        disabled={!modelsLoaded || detecting}
-                        className="btn-primary flex-1 max-w-[200px] flex items-center justify-center gap-2 group disabled:opacity-50"
-                        style={{ background: 'linear-gradient(90deg, #f43f5e, #e11d48)' }}
-                    >
-                        <span>Punch OUT</span>
-                    </motion.button>
+                <div className="mt-8 flex flex-col items-center gap-2">
+                    <div className="flex items-center gap-2 text-slate-500 text-sm">
+                        <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                        Live Biometric Tracking Enabled
+                    </div>
                 </div>
             </div>
         </motion.div >
