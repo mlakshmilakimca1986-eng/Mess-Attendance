@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import * as faceapi from 'face-api.js';
-import { User, IdentificationCard, Camera, CheckCircle, RefreshCcw } from 'lucide-react';
+import { User, IdCard, Camera, CheckCircle, RefreshCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE_URL } from '../config';
 
@@ -149,7 +149,7 @@ const Register = () => {
                             className="space-y-2"
                         >
                             <label className="text-slate-400 text-sm flex items-center gap-2">
-                                <IdentificationCard size={16} /> Employee ID
+                                <IdCard size={16} /> Employee ID
                             </label>
                             <input
                                 type="text"
