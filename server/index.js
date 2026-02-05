@@ -180,7 +180,17 @@ app.post('/api/attendance', async (req, res) => {
             return res.status(400).json({ error: 'Attendance already completed for today.' });
         }
 
-        res.json({ message: `Successfully punched ${type.toUpperCase()}`, type, time: now });
+        const [[updatedRecord]] = await pool.query(
+            'SELECT punch_in, punch_out FROM attendance WHERE employee_id = ? AND date = ?',
+            [employeeId, today]
+        );
+
+        res.json({
+            message: `Successfully punched ${type.toUpperCase()}`,
+            type,
+            punchIn: updatedRecord.punch_in,
+            punchOut: updatedRecord.punch_out
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

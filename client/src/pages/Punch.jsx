@@ -11,6 +11,7 @@ const Punch = () => {
     const [status, setStatus] = useState(null); // 'success', 'error', null
     const [message, setMessage] = useState('Hands-free scanning active');
     const [lastPunchTime, setLastPunchTime] = useState(0);
+    const [punchData, setPunchData] = useState(null);
 
     const getDeviceId = () => {
         let deviceId = localStorage.getItem('mess_attendance_device_id');
@@ -163,9 +164,13 @@ const Punch = () => {
 
                     if (response.ok) {
                         setStatus('success');
+                        setPunchData(result);
                         setMessage(`${result.message}. Have a nice day, ${matchedEmp.name}!`);
                         setLastPunchTime(Date.now());
-                        setTimeout(() => setStatus(null), 5000);
+                        setTimeout(() => {
+                            setStatus(null);
+                            setPunchData(null);
+                        }, 8000);
                     } else {
                         setStatus('error');
                         setMessage(result.error || 'System error. Contact admin.');
@@ -235,7 +240,24 @@ const Punch = () => {
                                 >
                                     <CheckCircle size={100} className="text-emerald-400 mb-2" />
                                 </motion.div>
-                                <span className="text-3xl font-bold text-white">SUCCESS</span>
+                                <span className="text-3xl font-bold text-white uppercase tracking-widest">SUCCESS</span>
+
+                                {punchData && (
+                                    <div className="mt-4 bg-white/20 p-4 rounded-xl backdrop-blur-lg border border-white/30 text-white min-w-[250px]">
+                                        <div className="flex justify-between items-center mb-2 border-b border-white/20 pb-2">
+                                            <span className="text-xs font-bold uppercase opacity-70">Punch In</span>
+                                            <span className="font-mono font-bold text-emerald-300">
+                                                {new Date(punchData.punchIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-xs font-bold uppercase opacity-70">Punch Out</span>
+                                            <span className="font-mono font-bold text-rose-300">
+                                                {punchData.punchOut ? new Date(punchData.punchOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'PENDING'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
                             </motion.div>
                         )}
 
