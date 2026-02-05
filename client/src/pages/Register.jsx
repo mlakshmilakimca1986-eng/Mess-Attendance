@@ -136,7 +136,8 @@ const Register = () => {
 
                 <div className="relative z-10">
                     <h2 className="text-3xl font-bold mb-2 text-indigo-400">Register Employee</h2>
-                    <p className="text-slate-500 text-sm mb-6">Step 1: Details {'->'} Step 2: Capture {'->'} Step 3: Save</p>
+                    <p className="text-slate-500 text-sm mb-1">Step 1: Details {'->'} Step 2: Capture {'->'} Step 3: Save</p>
+                    <p className="text-[10px] text-indigo-400 font-bold uppercase mb-6 opacity-70">Tip: Use existing ID to update an employee</p>
 
                     <form onSubmit={handleRegister} className="space-y-5">
                         <motion.div

@@ -142,17 +142,7 @@ app.post('/api/attendance', async (req, res) => {
             });
         }
 
-        // 2. Verify Geofence
-        if (!latitude || !longitude) {
-            return res.status(400).json({ error: 'Location access required for attendance.' });
-        }
-
-        const distance = calculateDistance(latitude, longitude, MESS_LAT, MESS_LON);
-        if (distance > ALLOWED_RADIUS) {
-            return res.status(403).json({
-                error: `Too far from Mess! You are ${Math.round(distance)}m away. Allowed: ${ALLOWED_RADIUS}m`
-            });
-        }
+        // Geofencing removed as per user request. Security relies on Authorized Device IDs.
 
         // 3. Determine Punch Type (Auto)
         const [[employeeExists]] = await pool.query('SELECT employee_id FROM employees WHERE employee_id = ?', [employeeId]);
