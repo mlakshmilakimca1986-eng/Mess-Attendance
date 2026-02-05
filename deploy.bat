@@ -54,6 +54,12 @@ if %ERRORLEVEL% NEQ 0 (
 echo.
 echo ======================================================
 echo    DEPLOYMENT COMPLETE! 🚀
+echo.
+echo    IMPORTANT: If you see model loading errors on mobile:
+echo    1. Open Chrome on mobile.
+echo    2. Tap 3 dots -> History -> Clear browsing data.
+echo    3. Select "Cached images and files" and Clear.
+echo.
 echo    Website: https://mess-attendance-sri-chaitanya.web.app
 echo ======================================================
 pause
