@@ -178,14 +178,13 @@ app.post('/api/attendance', async (req, res) => {
                 [employeeId, now, today]
             );
             type = 'in';
-        } else if (existingRecord.punch_out === null) {
+        } else {
+            // Always update punch_out to the latest time (allows updating until EOD)
             await pool.query(
                 'UPDATE attendance SET punch_out = ? WHERE id = ?',
                 [now, existingRecord.id]
             );
             type = 'out';
-        } else {
-            return res.status(400).json({ error: 'Attendance already completed for today.' });
         }
 
         const [[updatedRecord]] = await pool.query(
