@@ -13,6 +13,7 @@ const Register = () => {
     const [loading, setLoading] = useState(false);
     const [modelsLoaded, setModelsLoaded] = useState(false);
     const [message, setMessage] = useState('');
+    const [isStreaming, setIsStreaming] = useState(false);
 
     // Generate or retrieve a unique device ID (Simulation of IMEI requirement)
     const getDeviceId = () => {
@@ -48,12 +49,19 @@ const Register = () => {
     }, []);
 
     const startVideo = () => {
+        setIsStreaming(false);
         navigator.mediaDevices
-            .getUserMedia({ video: {} })
+            .getUserMedia({ video: { facingMode: 'user' } })
             .then((stream) => {
-                videoRef.current.srcObject = stream;
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    setIsStreaming(true);
+                }
             })
-            .catch((err) => console.error(err));
+            .catch((err) => {
+                console.error(err);
+                setMessage('Camera access denied. Please check permissions.');
+            });
     };
 
     const captureFace = async () => {
@@ -171,7 +179,7 @@ const Register = () => {
                         </motion.div>
 
                         <div className="flex flex-col gap-4">
-                            {!captured ? (
+                            {!captured && !isStreaming ? (
                                 <motion.button
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
@@ -182,6 +190,12 @@ const Register = () => {
                                 >
                                     <Camera size={20} /> Open Camera
                                 </motion.button>
+                            ) : !captured && isStreaming ? (
+                                <div className="bg-indigo-500/10 p-4 rounded-xl border border-indigo-500/20 text-center">
+                                    <p className="text-indigo-300 text-sm font-semibold animate-pulse">
+                                        Camera Active: Tap the circle button on video to capture face
+                                    </p>
+                                </div>
                             ) : (
                                 <motion.div
                                     initial={{ scale: 0.9, opacity: 0 }}
@@ -242,15 +256,19 @@ const Register = () => {
                     />
 
                     <AnimatePresence>
-                        {!captured && modelsLoaded && videoRef.current?.srcObject && (
+                        {!captured && modelsLoaded && isStreaming && (
                             <motion.button
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 20 }}
-                                onClick={captureFace}
-                                className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/10 hover:bg-white/20 backdrop-blur-xl p-5 rounded-full transition-all border border-white/20 z-20 shadow-2xl"
+                                initial={{ opacity: 0, scale: 0.5 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.5 }}
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    captureFace();
+                                }}
+                                className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-2xl p-6 rounded-full transition-all border-4 border-white/40 z-30 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
                             >
-                                <Camera size={28} className="text-white" />
+                                <Camera size={32} className="text-white" />
                             </motion.button>
                         )}
 
