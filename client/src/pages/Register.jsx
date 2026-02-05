@@ -191,11 +191,15 @@ const Register = () => {
                                     <Camera size={20} /> Open Camera
                                 </motion.button>
                             ) : !captured && isStreaming ? (
-                                <div className="bg-indigo-500/10 p-4 rounded-xl border border-indigo-500/20 text-center">
-                                    <p className="text-indigo-300 text-sm font-semibold animate-pulse">
-                                        Camera Active: Tap the circle button on video to capture face
-                                    </p>
-                                </div>
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    type="button"
+                                    onClick={captureFace}
+                                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all"
+                                >
+                                    <Camera size={20} /> Capture Face Photo
+                                </motion.button>
                             ) : (
                                 <motion.div
                                     initial={{ scale: 0.9, opacity: 0 }}
@@ -207,7 +211,7 @@ const Register = () => {
                                     <button
                                         type="button"
                                         onClick={() => setCaptured(false)}
-                                        className="ml-auto text-xs underline"
+                                        className="ml-auto text-xs underline font-bold"
                                     >
                                         Retake
                                     </button>
@@ -256,22 +260,6 @@ const Register = () => {
                     />
 
                     <AnimatePresence>
-                        {!captured && modelsLoaded && isStreaming && (
-                            <motion.button
-                                initial={{ opacity: 0, scale: 0.5 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.5 }}
-                                type="button"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    captureFace();
-                                }}
-                                className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-2xl p-6 rounded-full transition-all border-4 border-white/40 z-30 shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-                            >
-                                <Camera size={32} className="text-white" />
-                            </motion.button>
-                        )}
-
                         {!modelsLoaded && (
                             <motion.div
                                 exit={{ opacity: 0 }}
