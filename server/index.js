@@ -75,11 +75,57 @@ app.get('/', (req, res) => {
 app.post('/api/employees', async (req, res) => {
     const { employeeId, name, faceDescriptor, deviceId } = req.body;
     try {
+        // 1. Check if trying to update EXISTING employee (Allow updates)
+        const [[existingEmp]] = await pool.query('SELECT * FROM employees WHERE employee_id = ?', [employeeId]);
+
+        if (existingEmp) {
+            // Update existing employee
+            await pool.query(
+                'UPDATE employees SET name = ?, face_descriptor = ?, device_id = ? WHERE employee_id = ?',
+                [name, JSON.stringify(faceDescriptor), deviceId, employeeId]
+            );
+            return res.status(200).json({ message: 'Employee updated successfully' });
+        }
+
+        // 2. New Registration: Check for Duplicate Face
+        // Fetch all existing face descriptors to compare
+        const [allEmployees] = await pool.query('SELECT employee_id, name, face_descriptor FROM employees');
+
+        const newDescriptor = faceDescriptor; // Array of 128 floats
+        const DUPLICATE_THRESHOLD = 0.45; // Strict threshold for duplicates
+
+        for (const emp of allEmployees) {
+            let existingDescriptor;
+            try {
+                // Handle TiDB JSON format (string or object)
+                existingDescriptor = typeof emp.face_descriptor === 'string'
+                    ? JSON.parse(emp.face_descriptor)
+                    : emp.face_descriptor;
+
+                // Calculate Euclidean Distance
+                if (existingDescriptor && existingDescriptor.length === 128) {
+                    const distance = Math.sqrt(
+                        newDescriptor.reduce((sum, val, i) => sum + Math.pow(val - existingDescriptor[i], 2), 0)
+                    );
+
+                    if (distance < DUPLICATE_THRESHOLD) {
+                        return res.status(409).json({
+                            error: `Duplicate Face! This person is already registered as ${emp.name} (${emp.employee_id}).`
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error("Error comparing faces:", e);
+            }
+        }
+
+        // 3. No duplicate found -> Insert New
         await pool.query(
-            'INSERT INTO employees (employee_id, name, face_descriptor, device_id) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = ?, face_descriptor = ?, device_id = ?',
-            [employeeId, name, JSON.stringify(faceDescriptor), deviceId, name, JSON.stringify(faceDescriptor), deviceId]
+            'INSERT INTO employees (employee_id, name, face_descriptor, device_id) VALUES (?, ?, ?, ?)',
+            [employeeId, name, JSON.stringify(faceDescriptor), deviceId]
         );
-        res.status(201).json({ message: 'Employee registered' });
+        res.status(201).json({ message: 'Employee registered successfully' });
+
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
