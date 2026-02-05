@@ -121,31 +121,34 @@ const Punch = () => {
     const handleAutoScan = async () => {
         setDetecting(true);
         try {
-            // Get location first (Geofencing requirement)
-            let location = null;
-            try {
-                location = await getLocation();
-            } catch (locErr) {
-                setStatus('error');
-                setMessage('Please enable GPS/Location to punch attendance.');
-                setDetecting(false);
-                return;
-            }
-
             const detections = await faceapi.detectSingleFace(
                 videoRef.current,
-                new faceapi.TinyFaceDetectorOptions()
+                new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.4 })
             ).withFaceLandmarks().withFaceDescriptor();
 
             if (detections) {
+                setMessage('Face found! Verifying...');
                 const faceMatcher = new faceapi.FaceMatcher(
                     employees.map(emp => new faceapi.LabeledFaceDescriptors(emp.employee_id, [emp.descriptor])),
-                    0.55
+                    0.6 // Slightly looser for easier daily recognition
                 );
 
                 const bestMatch = faceMatcher.findBestMatch(detections.descriptor);
 
                 if (bestMatch.label !== 'unknown') {
+                    setMessage('Identity confirmed. Checking location...');
+
+                    // Get location ONLY after successful face match
+                    let location = null;
+                    try {
+                        location = await getLocation();
+                    } catch (locErr) {
+                        setStatus('error');
+                        setMessage('GPS Error: Please enable location.');
+                        setDetecting(false);
+                        return;
+                    }
+
                     const matchedEmp = employees.find(e => e.employee_id === bestMatch.label);
 
                     // Call backend with Auto-Logic and Geolocation
@@ -176,7 +179,12 @@ const Punch = () => {
                         setMessage(result.error || 'System error. Contact admin.');
                         setTimeout(() => setStatus(null), 3000);
                     }
+                } else {
+                    setMessage('Unknown face. Please use the registered face.');
+                    setTimeout(() => setMessage('Hands-free scanning active'), 2000);
                 }
+            } else {
+                setMessage('Hands-free scanning active');
             }
         } catch (err) {
             console.error(err);
