@@ -298,7 +298,7 @@ const Admin = () => {
                     <h2 className="text-xl font-bold">Recent Attendance</h2>
                     <button
                         onClick={exportToCSV}
-                        className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 px-6 py-2.5 rounded-xl transition-all shadow-lg text-sm font-bold"
+                        className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 px-6 py-2.5 rounded-xl transition-all shadow-lg text-sm font-bold text-white"
                     >
                         <Download size={16} /> Export CSV Report
                     </button>
@@ -340,8 +340,8 @@ const Admin = () => {
                                             <div className="text-xs text-slate-600 font-mono font-bold">{record.employee_id}</div>
                                         </td>
                                         <td className="px-6 py-4 text-slate-800 text-sm font-bold">{formatDate(record.date)}</td>
-                                        <td className="px-6 py-4 text-emerald-700 font-mono text-xs font-bold">{formatTime(record.punch_in)}</td>
-                                        <td className="px-6 py-4 text-rose-700 font-mono text-xs font-bold">{formatTime(record.punch_out)}</td>
+                                        <td className="px-6 py-4 text-emerald-700 font-mono text-sm font-bold">{formatTime(record.punch_in)}</td>
+                                        <td className="px-6 py-4 text-rose-700 font-mono text-sm font-bold">{formatTime(record.punch_out)}</td>
                                         <td className="px-6 py-4">
                                             <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${record.punch_out ? 'bg-indigo-100 text-indigo-800 border border-indigo-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'}`}>
                                                 {record.punch_out ? 'Completed' : 'On Shift'}
