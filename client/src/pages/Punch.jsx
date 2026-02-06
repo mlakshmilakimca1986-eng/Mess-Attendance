@@ -235,7 +235,7 @@ const Punch = () => {
             <div className="glass-card p-6 w-full max-w-2xl text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
 
-                <h2 className="text-3xl font-bold mb-6 text-indigo-600">Punch Attendance</h2>
+                <h2 className="text-3xl font-bold mb-6 text-indigo-800">Punch Attendance</h2>
 
                 <div className="relative aspect-square sm:aspect-video rounded-2xl overflow-hidden bg-slate-200 mb-8 border border-slate-200 group shadow-2xl">
                     <video
@@ -317,22 +317,22 @@ const Punch = () => {
                 </div>
 
                 <div className="mb-0 min-h-[4rem] flex items-center justify-center">
-                    <p className={`text-xl font-semibold transition-all duration-300 ${status === 'error' ? 'text-rose-500 scale-110' : status === 'success' ? 'text-emerald-500 scale-110' : 'text-slate-500'}`}>
+                    <p className={`text-xl font-bold transition-all duration-300 ${status === 'error' ? 'text-rose-600 scale-110' : status === 'success' ? 'text-emerald-600 scale-110' : 'text-slate-700'}`}>
                         {message}
                     </p>
                 </div>
 
                 <div className="mt-8 flex flex-col items-center gap-4">
-                    <div className="flex items-center gap-2 text-slate-500 text-sm">
-                        <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                    <div className="flex items-center gap-2 text-slate-700 font-semibold text-sm">
+                        <div className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
                         Live Biometric Tracking Enabled
                     </div>
 
                     <button
                         onClick={handleEditDeviceId}
-                        className="text-[10px] text-indigo-600 font-mono tracking-widest uppercase bg-indigo-500/5 px-2 py-1 rounded border border-indigo-500/10 hover:bg-indigo-500/20 transition-all"
+                        className="text-[10px] text-indigo-700 font-mono tracking-widest uppercase bg-indigo-100 px-2 py-1 rounded border border-indigo-200 hover:bg-indigo-200 transition-all font-bold"
                     >
-                        Device ID: {deviceId} <span className="ml-1 opacity-50 underline">(Edit)</span>
+                        Device ID: {deviceId} <span className="ml-1 opacity-70 underline">(Edit)</span>
                     </button>
                 </div>
                 <PinModal

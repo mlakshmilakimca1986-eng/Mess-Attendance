@@ -11,20 +11,20 @@ const Navbar = () => {
                     <span className="text-sm sm:text-lg font-bold text-slate-900 leading-tight">
                         Sri Chaitanya Educational Institutions
                     </span>
-                    <span className="text-[10px] sm:text-xs font-semibold text-indigo-600 tracking-wider">
+                    <span className="text-[10px] sm:text-xs font-bold text-indigo-700 tracking-wider">
                         ECITY BRANCH • MESS ATTENDANCE
                     </span>
                 </div>
             </div>
 
             <div className="flex gap-4 sm:gap-6 justify-center w-full sm:w-auto border-t border-slate-200 pt-2 sm:border-0 sm:pt-0">
-                <Link to="/" className="flex items-center gap-2 text-sm sm:text-base hover:text-indigo-600 transition-colors">
+                <Link to="/" className="flex items-center gap-2 text-sm sm:text-base font-semibold text-slate-700 hover:text-indigo-700 transition-colors">
                     <Camera size={18} /> <span>Punch</span>
                 </Link>
-                <Link to="/admin" className="flex items-center gap-2 text-sm sm:text-base hover:text-indigo-600 transition-colors">
+                <Link to="/admin" className="flex items-center gap-2 text-sm sm:text-base font-semibold text-slate-700 hover:text-indigo-700 transition-colors">
                     <LayoutDashboard size={18} /> <span>Admin</span>
                 </Link>
-                <Link to="/register" className="flex items-center gap-2 text-sm sm:text-base hover:text-indigo-600 transition-colors">
+                <Link to="/register" className="flex items-center gap-2 text-sm sm:text-base font-semibold text-slate-700 hover:text-indigo-700 transition-colors">
                     <UserPlus size={18} /> <span>Add User</span>
                 </Link>
             </div>

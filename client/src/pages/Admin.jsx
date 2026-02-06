@@ -204,48 +204,48 @@ const Admin = () => {
 
     return (
         <div className="p-4 md:p-8 space-y-8 animate-fade">
-            <div className="flex justify-between items-center bg-indigo-500/5 p-4 rounded-2xl border border-slate-200">
+            <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-indigo-500 rounded-full flex items-center justify-center font-bold text-white shadow-lg">S</div>
+                    <div className="h-8 w-8 bg-indigo-600 rounded-full flex items-center justify-center font-bold text-white shadow-lg">S</div>
                     <div>
                         <p className="text-xs text-slate-500 font-bold uppercase tracking-tighter">Admin</p>
-                        <p className="text-sm font-semibold text-slate-600 truncate max-w-[150px] md:max-w-none">Srinivas Naidu</p>
+                        <p className="text-sm font-bold text-slate-800 truncate max-w-[150px] md:max-w-none">Srinivas Naidu</p>
                     </div>
                 </div>
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-2 text-rose-400 hover:bg-rose-500/10 px-4 py-2 rounded-xl transition-all font-semibold text-sm"
+                    className="flex items-center gap-2 text-rose-600 hover:bg-rose-50 px-4 py-2 rounded-xl transition-all font-bold text-sm"
                 >
                     <LogOut size={16} /> Logout
                 </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="glass-card p-6 flex items-center gap-4 border-l-4 border-l-indigo-500">
-                    <div className="bg-indigo-500/20 p-4 rounded-xl text-indigo-400">
+                <div className="glass-card p-6 flex items-center gap-4 border-l-4 border-l-indigo-500 bg-white/60">
+                    <div className="bg-indigo-100 p-4 rounded-xl text-indigo-600">
                         <Users size={32} />
                     </div>
                     <div>
-                        <p className="text-slate-500 text-sm">Total Employees</p>
-                        <h3 className="text-2xl font-bold">{stats.totalEmployees}</h3>
+                        <p className="text-slate-600 text-sm font-bold">Total Employees</p>
+                        <h3 className="text-2xl font-bold text-slate-900">{stats.totalEmployees}</h3>
                     </div>
                 </div>
-                <div className="glass-card p-6 flex items-center gap-4 border-l-4 border-l-emerald-500">
-                    <div className="bg-emerald-500/20 p-4 rounded-xl text-emerald-400">
+                <div className="glass-card p-6 flex items-center gap-4 border-l-4 border-l-emerald-500 bg-white/60">
+                    <div className="bg-emerald-100 p-4 rounded-xl text-emerald-600">
                         <CheckCircleIcon size={32} />
                     </div>
                     <div>
-                        <p className="text-slate-500 text-sm">Present Today</p>
-                        <h3 className="text-2xl font-bold">{stats.presentToday}</h3>
+                        <p className="text-slate-600 text-sm font-bold">Present Today</p>
+                        <h3 className="text-2xl font-bold text-slate-900">{stats.presentToday}</h3>
                     </div>
                 </div>
-                <div className="glass-card p-6 flex items-center gap-4 border-l-4 border-l-rose-500">
-                    <div className="bg-rose-500/20 p-4 rounded-xl text-rose-400">
+                <div className="glass-card p-6 flex items-center gap-4 border-l-4 border-l-rose-500 bg-white/60">
+                    <div className="bg-rose-100 p-4 rounded-xl text-rose-600">
                         <Clock size={32} />
                     </div>
                     <div>
-                        <p className="text-slate-500 text-sm">Average Work Hours</p>
-                        <h3 className="text-2xl font-bold">{stats.avgWorkHours}</h3>
+                        <p className="text-slate-600 text-sm font-bold">Average Work Hours</p>
+                        <h3 className="text-2xl font-bold text-slate-900">{stats.avgWorkHours}</h3>
                     </div>
                 </div>
             </div>
@@ -306,13 +306,13 @@ const Admin = () => {
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                        <thead className="bg-black/5 text-slate-500 text-xs uppercase tracking-widest">
+                        <thead className="bg-slate-200 text-slate-800 text-xs uppercase tracking-widest">
                             <tr>
-                                <th className="px-6 py-4 font-bold">Employee</th>
-                                <th className="px-6 py-4 font-bold">Date</th>
-                                <th className="px-6 py-4 font-bold">Punch In</th>
-                                <th className="px-6 py-4 font-bold">Punch Out</th>
-                                <th className="px-6 py-4 font-bold">Status</th>
+                                <th className="px-6 py-4 font-bold border-b border-slate-300">Employee</th>
+                                <th className="px-6 py-4 font-bold border-b border-slate-300">Date</th>
+                                <th className="px-6 py-4 font-bold border-b border-slate-300">Punch In</th>
+                                <th className="px-6 py-4 font-bold border-b border-slate-300">Punch Out</th>
+                                <th className="px-6 py-4 font-bold border-b border-slate-300">Status</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
@@ -334,16 +334,16 @@ const Admin = () => {
                                 </tr>
                             ) : (
                                 attendance.map((record) => (
-                                    <tr key={record.id} className="hover:bg-black/5 transition-colors">
+                                    <tr key={record.id} className="hover:bg-slate-100 transition-colors border-b border-slate-200 last:border-0">
                                         <td className="px-6 py-4">
-                                            <div className="font-bold text-indigo-300">{record.name}</div>
-                                            <div className="text-[10px] text-slate-500 font-mono">{record.employee_id}</div>
+                                            <div className="font-bold text-indigo-800">{record.name}</div>
+                                            <div className="text-xs text-slate-600 font-mono font-bold">{record.employee_id}</div>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-700 text-sm font-semibold">{formatDate(record.date)}</td>
-                                        <td className="px-6 py-4 text-emerald-400 font-mono text-xs font-bold">{formatTime(record.punch_in)}</td>
-                                        <td className="px-6 py-4 text-rose-400 font-mono text-xs font-bold">{formatTime(record.punch_out)}</td>
+                                        <td className="px-6 py-4 text-slate-800 text-sm font-bold">{formatDate(record.date)}</td>
+                                        <td className="px-6 py-4 text-emerald-700 font-mono text-xs font-bold">{formatTime(record.punch_in)}</td>
+                                        <td className="px-6 py-4 text-rose-700 font-mono text-xs font-bold">{formatTime(record.punch_out)}</td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${record.punch_out ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/20' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20'}`}>
+                                            <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${record.punch_out ? 'bg-indigo-100 text-indigo-800 border border-indigo-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'}`}>
                                                 {record.punch_out ? 'Completed' : 'On Shift'}
                                             </span>
                                         </td>
