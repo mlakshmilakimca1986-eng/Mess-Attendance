@@ -103,25 +103,25 @@ const PinModal = ({ isOpen, onClose, onSuccess }) => {
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="relative w-full max-w-sm bg-slate-800 border border-indigo-500/30 rounded-2xl shadow-2xl overflow-hidden"
+                        className="relative w-full max-w-sm bg-white border border-indigo-500/30 rounded-2xl shadow-2xl overflow-hidden"
                     >
                         {/* Header */}
                         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500" />
 
                         <button
                             onClick={onClose}
-                            className="absolute top-3 right-3 text-slate-400 hover:text-white transition-colors"
+                            className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 transition-colors"
                         >
                             <X size={20} />
                         </button>
 
                         <div className="p-8 flex flex-col items-center">
-                            <div className="w-16 h-16 bg-indigo-500/10 rounded-full flex items-center justify-center mb-4 text-indigo-400">
+                            <div className="w-16 h-16 bg-indigo-500/10 rounded-full flex items-center justify-center mb-4 text-indigo-600">
                                 <Lock size={32} />
                             </div>
 
-                            <h3 className="text-xl font-bold text-white mb-2">Restricted Access</h3>
-                            <p className="text-slate-400 text-sm text-center mb-6">
+                            <h3 className="text-xl font-bold text-slate-900 mb-2">Restricted Access</h3>
+                            <p className="text-slate-500 text-sm text-center mb-6">
                                 Enter the 4-digit security PIN to authorize this device change.
                             </p>
 
@@ -136,7 +136,7 @@ const PinModal = ({ isOpen, onClose, onSuccess }) => {
                                         value={digit}
                                         onChange={(e) => handleChange(index, e.target.value)}
                                         onKeyDown={(e) => handleKeyDown(index, e)}
-                                        className="w-12 h-14 bg-slate-900/50 border border-slate-600 rounded-lg text-center text-2xl font-bold text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder-transparent"
+                                        className="w-12 h-14 bg-slate-100 border border-slate-300 rounded-lg text-center text-2xl font-bold text-slate-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder-transparent"
                                         autoComplete="off" // Disable autocomplete
                                     />
                                 ))}
@@ -146,13 +146,13 @@ const PinModal = ({ isOpen, onClose, onSuccess }) => {
                                 <motion.p
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="text-rose-400 text-sm font-semibold mb-2"
+                                    className="text-rose-500 text-sm font-semibold mb-2"
                                 >
                                     {error}
                                 </motion.p>
                             )}
 
-                            {processing && <Loader2 className="animate-spin text-indigo-400 mt-2" />}
+                            {processing && <Loader2 className="animate-spin text-indigo-600 mt-2" />}
                         </div>
                     </motion.div>
                 </div>

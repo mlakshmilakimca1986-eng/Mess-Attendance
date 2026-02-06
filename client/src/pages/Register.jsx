@@ -166,9 +166,9 @@ const Register = () => {
                 <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-500/5 -skew-x-12 translate-x-1/2 pointer-events-none" />
 
                 <div className="relative z-10">
-                    <h2 className="text-3xl font-bold mb-2 text-indigo-400">Register Employee</h2>
+                    <h2 className="text-3xl font-bold mb-2 text-indigo-600">Register Employee</h2>
                     <p className="text-slate-500 text-sm mb-1">Step 1: Details {'->'} Step 2: Capture {'->'} Step 3: Save</p>
-                    <p className="text-[10px] text-indigo-400 font-bold uppercase mb-6 opacity-70">Tip: Use existing ID to update an employee</p>
+                    <p className="text-[10px] text-indigo-600 font-bold uppercase mb-6 opacity-70">Tip: Use existing ID to update an employee</p>
 
                     <form onSubmit={handleRegister} className="space-y-5">
                         <motion.div
@@ -177,7 +177,7 @@ const Register = () => {
                             transition={{ delay: 0.1 }}
                             className="space-y-2"
                         >
-                            <label className="text-slate-400 text-sm flex items-center gap-2">
+                            <label className="text-slate-500 text-sm flex items-center gap-2">
                                 <User size={16} /> Full Name
                             </label>
                             <input
@@ -197,7 +197,7 @@ const Register = () => {
                             transition={{ delay: 0.2 }}
                             className="space-y-2"
                         >
-                            <label className="text-slate-400 text-sm flex items-center gap-2">
+                            <label className="text-slate-500 text-sm flex items-center gap-2">
                                 <IdCard size={16} /> Employee ID
                             </label>
                             <input
@@ -282,7 +282,7 @@ const Register = () => {
                     </form>
                 </div>
 
-                <div className="relative aspect-square rounded-2xl overflow-hidden bg-black/20 border border-white/10 shadow-inner group order-first md:order-last">
+                <div className="relative aspect-square rounded-2xl overflow-hidden bg-slate-200 border border-slate-200 shadow-inner group order-first md:order-last">
                     <video
                         ref={videoRef}
                         autoPlay
@@ -320,13 +320,13 @@ const Register = () => {
                     </AnimatePresence>
 
                     {/* Decorative Frame */}
-                    <div className="absolute inset-4 border-2 border-white/5 pointer-events-none rounded-xl" />
+                    <div className="absolute inset-4 border-2 border-slate-200 pointer-events-none rounded-xl" />
                 </div>
             </div>
 
             <button
                 onClick={handleEditDeviceId}
-                className="mt-6 text-[10px] text-indigo-400 font-mono tracking-widest uppercase bg-indigo-500/5 px-2 py-1 rounded border border-indigo-500/10 hover:bg-indigo-500/20 transition-all opacity-40 hover:opacity-100"
+                className="mt-6 text-[10px] text-indigo-600 font-mono tracking-widest uppercase bg-indigo-500/5 px-2 py-1 rounded border border-indigo-500/10 hover:bg-indigo-500/20 transition-all opacity-40 hover:opacity-100"
             >
                 Device ID: {deviceId} <span className="ml-1 underline">(Edit)</span>
             </button>

@@ -146,13 +146,13 @@ const Admin = () => {
                         <div className="bg-indigo-600/20 p-4 rounded-2xl text-indigo-400 mb-4">
                             <Lock size={40} />
                         </div>
-                        <h2 className="text-3xl font-bold text-white">Admin Portal</h2>
-                        <p className="text-slate-400 text-sm mt-2">Please login to access records</p>
+                        <h2 className="text-3xl font-bold text-slate-900">Admin Portal</h2>
+                        <p className="text-slate-500 text-sm mt-2">Please login to access records</p>
                     </div>
 
                     <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-slate-400 text-xs flex items-center gap-2 uppercase tracking-wider font-semibold">
+                            <label className="text-slate-500 text-xs flex items-center gap-2 uppercase tracking-wider font-semibold">
                                 <Mail size={14} /> Email Address
                             </label>
                             <input
@@ -166,7 +166,7 @@ const Admin = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-slate-400 text-xs flex items-center gap-2 uppercase tracking-wider font-semibold">
+                            <label className="text-slate-500 text-xs flex items-center gap-2 uppercase tracking-wider font-semibold">
                                 <Key size={14} /> Password
                             </label>
                             <input
@@ -204,12 +204,12 @@ const Admin = () => {
 
     return (
         <div className="p-4 md:p-8 space-y-8 animate-fade">
-            <div className="flex justify-between items-center bg-indigo-500/5 p-4 rounded-2xl border border-white/5">
+            <div className="flex justify-between items-center bg-indigo-500/5 p-4 rounded-2xl border border-slate-200">
                 <div className="flex items-center gap-3">
                     <div className="h-8 w-8 bg-indigo-500 rounded-full flex items-center justify-center font-bold text-white shadow-lg">S</div>
                     <div>
                         <p className="text-xs text-slate-500 font-bold uppercase tracking-tighter">Admin</p>
-                        <p className="text-sm font-semibold text-slate-300 truncate max-w-[150px] md:max-w-none">Srinivas Naidu</p>
+                        <p className="text-sm font-semibold text-slate-600 truncate max-w-[150px] md:max-w-none">Srinivas Naidu</p>
                     </div>
                 </div>
                 <button
@@ -226,7 +226,7 @@ const Admin = () => {
                         <Users size={32} />
                     </div>
                     <div>
-                        <p className="text-slate-400 text-sm">Total Employees</p>
+                        <p className="text-slate-500 text-sm">Total Employees</p>
                         <h3 className="text-2xl font-bold">{stats.totalEmployees}</h3>
                     </div>
                 </div>
@@ -235,7 +235,7 @@ const Admin = () => {
                         <CheckCircleIcon size={32} />
                     </div>
                     <div>
-                        <p className="text-slate-400 text-sm">Present Today</p>
+                        <p className="text-slate-500 text-sm">Present Today</p>
                         <h3 className="text-2xl font-bold">{stats.presentToday}</h3>
                     </div>
                 </div>
@@ -244,7 +244,7 @@ const Admin = () => {
                         <Clock size={32} />
                     </div>
                     <div>
-                        <p className="text-slate-400 text-sm">Average Work Hours</p>
+                        <p className="text-slate-500 text-sm">Average Work Hours</p>
                         <h3 className="text-2xl font-bold">{stats.avgWorkHours}</h3>
                     </div>
                 </div>
@@ -257,8 +257,8 @@ const Admin = () => {
                         <Lock size={24} />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-white">Security Settings</h3>
-                        <p className="text-slate-400 text-xs">Update the master PIN used for device authorization</p>
+                        <h3 className="text-lg font-bold text-slate-900">Security Settings</h3>
+                        <p className="text-slate-500 text-xs">Update the master PIN used for device authorization</p>
                     </div>
                 </div>
 
@@ -294,7 +294,7 @@ const Admin = () => {
             </div>
 
             <div className="glass-card overflow-hidden">
-                <div className="p-6 border-b border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="p-6 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
                     <h2 className="text-xl font-bold">Recent Attendance</h2>
                     <button
                         onClick={exportToCSV}
@@ -306,7 +306,7 @@ const Admin = () => {
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                        <thead className="bg-white/5 text-slate-400 text-xs uppercase tracking-widest">
+                        <thead className="bg-black/5 text-slate-500 text-xs uppercase tracking-widest">
                             <tr>
                                 <th className="px-6 py-4 font-bold">Employee</th>
                                 <th className="px-6 py-4 font-bold">Date</th>
@@ -315,7 +315,7 @@ const Admin = () => {
                                 <th className="px-6 py-4 font-bold">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody className="divide-y divide-slate-200">
                             {loading ? (
                                 <tr>
                                     <td colSpan="5" className="px-6 py-8 text-center text-slate-500">
@@ -334,12 +334,12 @@ const Admin = () => {
                                 </tr>
                             ) : (
                                 attendance.map((record) => (
-                                    <tr key={record.id} className="hover:bg-white/5 transition-colors">
+                                    <tr key={record.id} className="hover:bg-black/5 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="font-bold text-indigo-300">{record.name}</div>
                                             <div className="text-[10px] text-slate-500 font-mono">{record.employee_id}</div>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-300 text-sm font-semibold">{formatDate(record.date)}</td>
+                                        <td className="px-6 py-4 text-slate-700 text-sm font-semibold">{formatDate(record.date)}</td>
                                         <td className="px-6 py-4 text-emerald-400 font-mono text-xs font-bold">{formatTime(record.punch_in)}</td>
                                         <td className="px-6 py-4 text-rose-400 font-mono text-xs font-bold">{formatTime(record.punch_out)}</td>
                                         <td className="px-6 py-4">

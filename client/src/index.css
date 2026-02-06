@@ -6,11 +6,12 @@
   --primary: #6366f1;
   --secondary: #a855f7;
   --accent: #f43f5e;
-  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-  --glass: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --text: #f8fafc;
-  --text-muted: #94a3b8;
+  /* Light Pastel Gradient: Soft Blue to Lavender */
+  --bg-gradient: linear-gradient(135deg, #eef2ff 0%, #f3e8ff 100%);
+  --glass: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --text: #0f172a;
+  --text-muted: #475569;
 }
 
 * {
@@ -33,7 +34,7 @@ body {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
   border-radius: 1.5rem;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
 }
 
 .btn-primary {
@@ -53,11 +54,11 @@ body {
 }
 
 .input-field {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.5);
   border: 1px solid var(--glass-border);
   border-radius: 0.75rem;
   padding: 0.75rem;
-  color: white;
+  color: var(--text);
   width: 100%;
 }
 

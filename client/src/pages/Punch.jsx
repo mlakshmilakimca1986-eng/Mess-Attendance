@@ -235,9 +235,9 @@ const Punch = () => {
             <div className="glass-card p-6 w-full max-w-2xl text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
 
-                <h2 className="text-3xl font-bold mb-6 text-indigo-400">Punch Attendance</h2>
+                <h2 className="text-3xl font-bold mb-6 text-indigo-600">Punch Attendance</h2>
 
-                <div className="relative aspect-square sm:aspect-video rounded-2xl overflow-hidden bg-black/20 mb-8 border border-white/10 group shadow-2xl">
+                <div className="relative aspect-square sm:aspect-video rounded-2xl overflow-hidden bg-slate-200 mb-8 border border-slate-200 group shadow-2xl">
                     <video
                         ref={videoRef}
                         autoPlay
@@ -317,7 +317,7 @@ const Punch = () => {
                 </div>
 
                 <div className="mb-0 min-h-[4rem] flex items-center justify-center">
-                    <p className={`text-xl font-semibold transition-all duration-300 ${status === 'error' ? 'text-rose-400 scale-110' : status === 'success' ? 'text-emerald-400 scale-110' : 'text-slate-400'}`}>
+                    <p className={`text-xl font-semibold transition-all duration-300 ${status === 'error' ? 'text-rose-500 scale-110' : status === 'success' ? 'text-emerald-500 scale-110' : 'text-slate-500'}`}>
                         {message}
                     </p>
                 </div>
@@ -330,7 +330,7 @@ const Punch = () => {
 
                     <button
                         onClick={handleEditDeviceId}
-                        className="text-[10px] text-indigo-400 font-mono tracking-widest uppercase bg-indigo-500/5 px-2 py-1 rounded border border-indigo-500/10 hover:bg-indigo-500/20 transition-all"
+                        className="text-[10px] text-indigo-600 font-mono tracking-widest uppercase bg-indigo-500/5 px-2 py-1 rounded border border-indigo-500/10 hover:bg-indigo-500/20 transition-all"
                     >
                         Device ID: {deviceId} <span className="ml-1 opacity-50 underline">(Edit)</span>
                     </button>
