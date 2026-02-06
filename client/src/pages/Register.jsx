@@ -3,6 +3,7 @@ import * as faceapi from 'face-api.js';
 import { User, IdCard, Camera, CheckCircle, RefreshCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE_URL } from '../config';
+import PinModal from '../components/PinModal';
 
 const Register = () => {
     const videoRef = useRef();
@@ -17,6 +18,8 @@ const Register = () => {
 
     // Generate or retrieve a unique device ID (Simulation of IMEI requirement)
     const [deviceId, setDeviceId] = useState(localStorage.getItem('mess_attendance_device_id') || '');
+    const [showPinModal, setShowPinModal] = useState(false);
+    const [pendingDeviceId, setPendingDeviceId] = useState('');
 
     useEffect(() => {
         if (!deviceId) {
@@ -29,8 +32,28 @@ const Register = () => {
     const handleEditDeviceId = () => {
         const newId = prompt('Enter Device Name (example: MOBILE-1):', deviceId);
         if (newId && newId.trim()) {
-            localStorage.setItem('mess_attendance_device_id', newId.trim().toUpperCase());
-            setDeviceId(newId.trim().toUpperCase());
+            const finalId = newId.trim().toUpperCase();
+
+            // Security Check for Restricted IDs
+            const RESTRICTED_PREFIXES = ['INCHARGE', 'MASTER', 'ADMIN', 'GOPI'];
+            const isRestricted = RESTRICTED_PREFIXES.some(prefix => finalId.startsWith(prefix));
+
+            if (isRestricted) {
+                setPendingDeviceId(finalId);
+                setShowPinModal(true);
+                return;
+            }
+
+            localStorage.setItem('mess_attendance_device_id', finalId);
+            setDeviceId(finalId);
+            window.location.reload();
+        }
+    };
+
+    const handlePinSuccess = () => {
+        if (pendingDeviceId) {
+            localStorage.setItem('mess_attendance_device_id', pendingDeviceId);
+            setDeviceId(pendingDeviceId);
             window.location.reload();
         }
     };
@@ -307,6 +330,11 @@ const Register = () => {
             >
                 Device ID: {deviceId} <span className="ml-1 underline">(Edit)</span>
             </button>
+            <PinModal
+                isOpen={showPinModal}
+                onClose={() => setShowPinModal(false)}
+                onSuccess={handlePinSuccess}
+            />
         </motion.div >
     );
 };

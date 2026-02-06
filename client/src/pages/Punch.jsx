@@ -3,6 +3,7 @@ import * as faceapi from 'face-api.js';
 import { Camera, RefreshCcw, CheckCircle, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE_URL } from '../config';
+import PinModal from '../components/PinModal';
 
 const Punch = () => {
     const videoRef = useRef();
@@ -14,6 +15,8 @@ const Punch = () => {
     const [punchData, setPunchData] = useState(null);
 
     const [deviceId, setDeviceId] = useState(localStorage.getItem('mess_attendance_device_id') || '');
+    const [showPinModal, setShowPinModal] = useState(false);
+    const [pendingDeviceId, setPendingDeviceId] = useState('');
 
     useEffect(() => {
         if (!deviceId) {
@@ -26,9 +29,29 @@ const Punch = () => {
     const handleEditDeviceId = () => {
         const newId = prompt('Enter Device Name (example: MOBILE-1):', deviceId);
         if (newId && newId.trim()) {
-            localStorage.setItem('mess_attendance_device_id', newId.trim().toUpperCase());
-            setDeviceId(newId.trim().toUpperCase());
-            window.location.reload(); // Reload to refresh everything
+            const finalId = newId.trim().toUpperCase();
+
+            // Security Check for Restricted IDs
+            const RESTRICTED_PREFIXES = ['INCHARGE', 'MASTER', 'ADMIN', 'GOPI'];
+            const isRestricted = RESTRICTED_PREFIXES.some(prefix => finalId.startsWith(prefix));
+
+            if (isRestricted) {
+                setPendingDeviceId(finalId);
+                setShowPinModal(true);
+                return;
+            }
+
+            localStorage.setItem('mess_attendance_device_id', finalId);
+            setDeviceId(finalId);
+            window.location.reload();
+        }
+    };
+
+    const handlePinSuccess = () => {
+        if (pendingDeviceId) {
+            localStorage.setItem('mess_attendance_device_id', pendingDeviceId);
+            setDeviceId(pendingDeviceId);
+            window.location.reload();
         }
     };
 
@@ -261,7 +284,7 @@ const Punch = () => {
                                 <span className="text-3xl font-bold text-white uppercase tracking-widest">SUCCESS</span>
 
                                 {punchData && (
-                                    <div className="mt-4 bg-white/20 p-4 rounded-xl backdrop-blur-lg border border-white/30 text-white min-w-[250px]">
+                                    <div className="mt-4 bg-black p-4 rounded-xl border border-white/10 text-white min-w-[250px] shadow-2xl">
                                         <div className="flex justify-between items-center mb-2 border-b border-white/20 pb-2">
                                             <span className="text-xs font-bold uppercase opacity-70">Punch In</span>
                                             <span className="font-mono font-bold text-emerald-300">
@@ -312,6 +335,11 @@ const Punch = () => {
                         Device ID: {deviceId} <span className="ml-1 opacity-50 underline">(Edit)</span>
                     </button>
                 </div>
+                <PinModal
+                    isOpen={showPinModal}
+                    onClose={() => setShowPinModal(false)}
+                    onSuccess={handlePinSuccess}
+                />
             </div>
         </motion.div >
     );
