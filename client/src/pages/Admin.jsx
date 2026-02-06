@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Clock, ArrowDownAz, Download, Lock, Mail, Key, LogOut } from 'lucide-react';
+import { Calendar, Users, Clock, ArrowDownAz, Download, Lock, Mail, Key, LogOut, Search, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE_URL } from '../config';
 
@@ -16,8 +16,41 @@ const Admin = () => {
     const [loginLoading, setLoginLoading] = useState(false);
 
     // Security PIN State
+    // Security PIN State
     const [securityPin, setSecurityPin] = useState('');
     const [pinUpdateStatus, setPinUpdateStatus] = useState('');
+
+    // Filter State
+    const [searchTerm, setSearchTerm] = useState('');
+    const [dateRange, setDateRange] = useState({ start: '', end: '' });
+    const [filteredAttendance, setFilteredAttendance] = useState([]);
+
+    useEffect(() => {
+        let result = attendance;
+
+        // Filter by Search Term
+        if (searchTerm) {
+            const lowerTerm = searchTerm.toLowerCase();
+            result = result.filter(rec =>
+                (rec.name && rec.name.toLowerCase().includes(lowerTerm)) ||
+                (rec.employee_id && rec.employee_id.toLowerCase().includes(lowerTerm))
+            );
+        }
+
+        // Filter by Date Range
+        if (dateRange.start) {
+            const startDate = new Date(dateRange.start);
+            startDate.setHours(0, 0, 0, 0);
+            result = result.filter(rec => new Date(rec.date) >= startDate);
+        }
+        if (dateRange.end) {
+            const endDate = new Date(dateRange.end);
+            endDate.setHours(23, 59, 59, 999); // Include the whole day
+            result = result.filter(rec => new Date(rec.date) <= endDate);
+        }
+
+        setFilteredAttendance(result);
+    }, [attendance, searchTerm, dateRange]);
 
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
@@ -75,12 +108,12 @@ const Admin = () => {
     };
 
     const exportToCSV = () => {
-        if (attendance.length === 0) return;
+        if (filteredAttendance.length === 0) return;
         const headers = ['Name', 'Employee ID', 'Date', 'Punch In', 'Punch Out', 'Status'];
-        const rows = attendance.map(rec => [
+        const rows = filteredAttendance.map(rec => [
             rec.name,
             rec.employee_id,
-            new Date(rec.date).toLocaleDateString(),
+            new Date(rec.date).toLocaleDateString('en-GB'),
             rec.punch_in ? new Date(rec.punch_in).toLocaleTimeString() : '-',
             rec.punch_out ? new Date(rec.punch_out).toLocaleTimeString() : '-',
             rec.punch_out ? 'Completed' : 'On Shift'
@@ -91,7 +124,7 @@ const Admin = () => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.setAttribute("href", url);
-        link.setAttribute("download", `attendance_report_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute("download", `attendance_report_${new Date().toLocaleDateString('en-GB').replace(/\//g, '-')}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -124,7 +157,7 @@ const Admin = () => {
     };
 
     const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString();
+        return new Date(dateString).toLocaleDateString('en-GB');
     };
 
     const formatTime = (timeString) => {
@@ -294,14 +327,59 @@ const Admin = () => {
             </div>
 
             <div className="glass-card overflow-hidden">
-                <div className="p-6 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <h2 className="text-xl font-bold">Recent Attendance</h2>
-                    <button
-                        onClick={exportToCSV}
-                        className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 px-6 py-2.5 rounded-xl transition-all shadow-lg text-sm font-bold text-white"
-                    >
-                        <Download size={16} /> Export CSV Report
-                    </button>
+                <div className="p-6 border-b border-slate-200 flex flex-col gap-4">
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <h2 className="text-xl font-bold">Recent Attendance</h2>
+                        <button
+                            onClick={exportToCSV}
+                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 px-6 py-2.5 rounded-xl transition-all shadow-lg text-sm font-bold text-white whitespace-nowrap"
+                        >
+                            <Download size={16} /> Export CSV Report
+                        </button>
+                    </div>
+
+                    {/* Filters */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2">
+                        {/* Search Input */}
+                        <div className="relative md:col-span-2">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
+                            <input
+                                type="text"
+                                placeholder="Search by Name or ID..."
+                                className="w-full pl-10 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-medium"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Date Filters */}
+                        <div className="flex gap-2 items-center">
+                            <span className="text-xs font-bold text-slate-500 whitespace-nowrap">From:</span>
+                            <input
+                                type="date"
+                                className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-medium"
+                                value={dateRange.start}
+                                onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                            />
+                        </div>
+                        <div className="flex gap-2 items-center">
+                            <span className="text-xs font-bold text-slate-500 whitespace-nowrap">To:</span>
+                            <input
+                                type="date"
+                                className="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 font-medium"
+                                value={dateRange.end}
+                                onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                            />
+                        </div>
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -326,14 +404,14 @@ const Admin = () => {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : attendance.length === 0 ? (
+                            ) : filteredAttendance.length === 0 ? (
                                 <tr>
                                     <td colSpan="5" className="px-6 py-8 text-center text-slate-500">
-                                        No attendance records found
+                                        No attendance records found matching filters
                                     </td>
                                 </tr>
                             ) : (
-                                attendance.map((record) => (
+                                filteredAttendance.map((record) => (
                                     <tr key={record.id} className="hover:bg-slate-100 transition-colors border-b border-slate-200 last:border-0">
                                         <td className="px-6 py-4">
                                             <div className="font-bold text-indigo-800">{record.name}</div>
