@@ -15,6 +15,10 @@ const Admin = () => {
     const [loginError, setLoginError] = useState('');
     const [loginLoading, setLoginLoading] = useState(false);
 
+    // Security PIN State
+    const [securityPin, setSecurityPin] = useState('');
+    const [pinUpdateStatus, setPinUpdateStatus] = useState('');
+
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
         if (adminToken === 'authorized') {
@@ -91,6 +95,32 @@ const Admin = () => {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    const handleUpdatePin = async (e) => {
+        e.preventDefault();
+        if (securityPin.length !== 4) {
+            setPinUpdateStatus('Error: PIN must be 4 digits');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/settings/update-pin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newPin: securityPin })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setPinUpdateStatus('Success: PIN updated! All devices will use this new PIN.');
+                setSecurityPin('');
+                setTimeout(() => setPinUpdateStatus(''), 5000);
+            } else {
+                setPinUpdateStatus('Error: ' + (data.error || 'Failed'));
+            }
+        } catch (err) {
+            setPinUpdateStatus('Error: Server connection failed');
+        }
     };
 
     const formatDate = (dateString) => {
@@ -218,6 +248,49 @@ const Admin = () => {
                         <h3 className="text-2xl font-bold">{stats.avgWorkHours}</h3>
                     </div>
                 </div>
+            </div>
+
+            {/* Security Settings Section */}
+            <div className="glass-card p-6 border-l-4 border-l-purple-500">
+                <div className="flex items-center gap-4 mb-4">
+                    <div className="bg-purple-500/20 p-3 rounded-xl text-purple-400">
+                        <Lock size={24} />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white">Security Settings</h3>
+                        <p className="text-slate-400 text-xs">Update the master PIN used for device authorization</p>
+                    </div>
+                </div>
+
+                <form onSubmit={handleUpdatePin} className="flex flex-col sm:flex-row gap-4 items-end sm:items-center">
+                    <div className="w-full sm:max-w-xs">
+                        <label className="text-xs uppercase font-bold text-slate-500 mb-1 block">New 4-Digit PIN</label>
+                        <input
+                            type="text"
+                            maxLength={4}
+                            pattern="\d{4}"
+                            className="input-field py-2 text-center tracking-[0.5em] font-mono font-bold"
+                            placeholder="••••"
+                            value={securityPin}
+                            onChange={(e) => {
+                                if (/^\d*$/.test(e.target.value)) setSecurityPin(e.target.value);
+                            }}
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={!securityPin || securityPin.length !== 4}
+                        className="btn-primary whitespace-nowrap px-6 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Update Global PIN
+                    </button>
+
+                    {pinUpdateStatus && (
+                        <span className={`text-sm font-bold ${pinUpdateStatus.includes('Error') ? 'text-rose-400' : 'text-emerald-400'}`}>
+                            {pinUpdateStatus}
+                        </span>
+                    )}
+                </form>
             </div>
 
             <div className="glass-card overflow-hidden">

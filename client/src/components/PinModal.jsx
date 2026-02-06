@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Lock } from 'lucide-react';
+import { X, Lock, Loader2 } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const PinModal = ({ isOpen, onClose, onSuccess }) => {
     const [pin, setPin] = useState(['', '', '', '']);
     const [error, setError] = useState('');
+    const [processing, setProcessing] = useState(false);
     const inputRefs = [useRef(), useRef(), useRef(), useRef()];
 
     useEffect(() => {
@@ -53,15 +55,33 @@ const PinModal = ({ isOpen, onClose, onSuccess }) => {
         }
     };
 
-    const handleSubmit = (enteredPin) => {
-        // HARDCODED PIN: 1234
-        if (enteredPin === '1234') {
-            onSuccess();
-            onClose();
-        } else {
-            setError('Incorrect PIN');
+    const handleSubmit = async (enteredPin) => {
+        setProcessing(true);
+        setError('');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/verify-pin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pin: enteredPin })
+            });
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                onSuccess();
+                onClose();
+            } else {
+                setError(data.error || 'Incorrect PIN');
+                setPin(['', '', '', '']);
+                inputRefs[0].current.focus();
+            }
+        } catch (err) {
+            console.error(err);
+            setError('Connection error');
             setPin(['', '', '', '']);
             inputRefs[0].current.focus();
+        } finally {
+            setProcessing(false);
         }
     };
 
@@ -131,6 +151,8 @@ const PinModal = ({ isOpen, onClose, onSuccess }) => {
                                     {error}
                                 </motion.p>
                             )}
+
+                            {processing && <Loader2 className="animate-spin text-indigo-400 mt-2" />}
                         </div>
                     </motion.div>
                 </div>

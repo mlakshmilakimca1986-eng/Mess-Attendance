@@ -60,6 +60,19 @@ async function initDB() {
                 FOREIGN KEY (employee_id) REFERENCES employees(employee_id)
             )
         `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS settings (
+                setting_key VARCHAR(50) PRIMARY KEY,
+                setting_value VARCHAR(255)
+            )
+        `);
+
+        // Insert default Security PIN if it doesn't exist
+        await connection.query(`
+            INSERT IGNORE INTO settings (setting_key, setting_value) VALUES ('security_pin', '1234')
+        `);
+
         connection.release();
     } catch (err) {
         console.error('Error connecting to TiDB:', err.message);
@@ -286,6 +299,42 @@ app.get('/api/analytics', async (req, res) => {
                 avgWorkHours: `${Math.floor(avgWorkMinutes / 60)}h ${Math.round(avgWorkMinutes % 60)}m`
             }
         });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Verify Security PIN
+app.post('/api/verify-pin', async (req, res) => {
+    const { pin } = req.body;
+    try {
+        const [[row]] = await pool.query('SELECT setting_value FROM settings WHERE setting_key = "security_pin"');
+        const correctPin = row ? row.setting_value : '1234';
+
+        if (pin === correctPin) {
+            res.json({ success: true });
+        } else {
+            res.status(401).json({ success: false, error: 'Incorrect PIN' });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Update Security PIN (Admin only)
+app.post('/api/settings/update-pin', async (req, res) => {
+    const { newPin } = req.body;
+
+    if (!/^\d{4}$/.test(newPin)) {
+        return res.status(400).json({ error: 'PIN must be a 4-digit number' });
+    }
+
+    try {
+        await pool.query(
+            'INSERT INTO settings (setting_key, setting_value) VALUES ("security_pin", ?) ON DUPLICATE KEY UPDATE setting_value = ?',
+            [newPin, newPin]
+        );
+        res.json({ success: true, message: 'Security PIN updated successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
