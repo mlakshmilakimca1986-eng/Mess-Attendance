@@ -137,6 +137,16 @@ const Admin = () => {
         }
     };
 
+    const calculateDuration = (start, end) => {
+        if (!start || !end) return '-';
+        const startTime = new Date(start);
+        const endTime = new Date(end);
+        const diff = endTime - startTime;
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        return `${hours}h ${minutes}m`;
+    };
+
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
         setIsLoggedIn(false);
@@ -145,14 +155,15 @@ const Admin = () => {
 
     const exportToCSV = () => {
         if (filteredAttendance.length === 0) return;
-        const headers = ['Name', 'Employee ID', 'Date', 'Punch In', 'Punch Out', 'Status'];
+        const headers = ['Name', 'Employee ID', 'Date', 'Punch In', 'Punch Out', 'Status', 'Duration'];
         const rows = filteredAttendance.map(rec => [
             rec.name,
             rec.employee_id,
             new Date(rec.date).toLocaleDateString('en-GB'),
             rec.punch_in ? new Date(rec.punch_in).toLocaleTimeString() : '-',
             rec.punch_out ? new Date(rec.punch_out).toLocaleTimeString() : '-',
-            getRecStatus(rec)
+            getRecStatus(rec),
+            calculateDuration(rec.punch_in, rec.punch_out)
         ]);
 
         const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
@@ -202,7 +213,11 @@ const Admin = () => {
     };
 
     const getRecStatus = (record) => {
-        if (!record.punch_in) return 'Absent';
+        if (!record.punch_in) {
+            const recordDate = new Date(record.date).toISOString().split('T')[0];
+            const today = new Date().toISOString().split('T')[0];
+            return recordDate === today ? 'Not Punched' : 'Absent';
+        }
 
         const punchInHour = new Date(record.punch_in).getHours();
 
@@ -230,6 +245,7 @@ const Admin = () => {
             case 'Morning Present': return 'bg-teal-100 text-teal-800 border border-teal-200';
             case 'Afternoon Present': return 'bg-amber-100 text-amber-800 border border-amber-200';
             case 'Absent': return 'bg-rose-100 text-rose-800 border border-rose-200';
+            case 'Not Punched': return 'bg-slate-100 text-slate-500 border border-slate-200';
             default: return 'bg-slate-100 text-slate-800';
         }
     };
@@ -461,12 +477,13 @@ const Admin = () => {
                                 <th className="px-6 py-4 font-bold border-b border-slate-300">Punch In</th>
                                 <th className="px-6 py-4 font-bold border-b border-slate-300">Punch Out</th>
                                 <th className="px-6 py-4 font-bold border-b border-slate-300">Status</th>
+                                <th className="px-6 py-4 font-bold border-b border-slate-300">Duration</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-8 text-center text-slate-500">
+                                    <td colSpan="6" className="px-6 py-8 text-center text-slate-500">
                                         <div className="flex items-center justify-center gap-2">
                                             <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" />
                                             <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce [animation-delay:-.3s]" />
@@ -476,7 +493,7 @@ const Admin = () => {
                                 </tr>
                             ) : filteredAttendance.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-8 text-center text-slate-500">
+                                    <td colSpan="6" className="px-6 py-8 text-center text-slate-500">
                                         No attendance records found matching filters
                                     </td>
                                 </tr>
@@ -494,6 +511,9 @@ const Admin = () => {
                                             <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusColor(getRecStatus(record))}`}>
                                                 {getRecStatus(record)}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-slate-700 font-mono text-sm font-bold">
+                                            {calculateDuration(record.punch_in, record.punch_out)}
                                         </td>
                                     </tr>
                                 ))
