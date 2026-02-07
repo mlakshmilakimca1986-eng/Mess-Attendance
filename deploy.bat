@@ -1,5 +1,8 @@
 @echo off
 SETLOCAL EnableDelayedExpansion
+set /p msg="Enter commit message: "
+if "%msg%"=="" set msg="Fixed PDF layout and logic"
+
 
 echo ======================================================
 echo    SRI CHAITANYA MESS ATTENDANCE - DEPLOYMENT TOOL
@@ -9,7 +12,7 @@ echo.
 :: 1. Sync Code to GitHub
 echo [1/4] Syncing code to GitHub...
 git add .
-git commit -m "Auto-deploy: Update from one-click tool"
+git commit -m "%msg%"
 git push origin main
 if %ERRORLEVEL% NEQ 0 (
     echo [ERROR] Failed to push code to GitHub.

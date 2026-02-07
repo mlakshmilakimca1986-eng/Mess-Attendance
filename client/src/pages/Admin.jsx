@@ -6,6 +6,7 @@ import LoadingTimer from '../components/LoadingTimer';
 
 const Admin = () => {
     const [attendance, setAttendance] = useState([]);
+    const [employees, setEmployees] = useState([]);
     const [stats, setStats] = useState({ totalEmployees: 0, presentToday: 0, avgWorkHours: '0h 0m' });
     const [loading, setLoading] = useState(true);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -27,7 +28,32 @@ const Admin = () => {
     const [filteredAttendance, setFilteredAttendance] = useState([]);
 
     useEffect(() => {
-        let result = attendance;
+        let result = [...attendance];
+
+        // Generate Absent Records for Today
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // Find employees who don't have a record for today
+        const employeesPresentToday = new Set(
+            attendance
+                .filter(rec => new Date(rec.date).toISOString().split('T')[0] === todayStr)
+                .map(rec => rec.employee_id)
+        );
+
+        const absentRecords = employees
+            .filter(emp => !employeesPresentToday.has(emp.employee_id))
+            .map(emp => ({
+                id: `absent-${emp.employee_id}`, // temporary ID
+                employee_id: emp.employee_id,
+                name: emp.name,
+                date: todayStr,
+                punch_in: null,
+                punch_out: null,
+                status: 'Absent'
+            }));
+
+        // Add absent records to the result
+        result = [...result, ...absentRecords];
 
         // Filter by Search Term
         if (searchTerm) {
@@ -50,8 +76,12 @@ const Admin = () => {
             result = result.filter(rec => new Date(rec.date) <= endDate);
         }
 
+        // Sort: Absent records for today should probably be at the top or mixed in by date
+        // Re-sort by date descending
+        result.sort((a, b) => new Date(b.date) - new Date(a.date));
+
         setFilteredAttendance(result);
-    }, [attendance, searchTerm, dateRange]);
+    }, [attendance, employees, searchTerm, dateRange]);
 
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
@@ -65,7 +95,12 @@ const Admin = () => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/analytics`);
             const result = await response.json();
+
+            const empResponse = await fetch(`${API_BASE_URL}/api/employees`);
+            const empResult = await empResponse.json();
+
             setAttendance(result.attendance || []);
+            setEmployees(empResult || []);
             setStats(result.stats || { totalEmployees: 0, presentToday: 0, avgWorkHours: '0h 0m' });
         } catch (err) {
             console.error('Error fetching attendance:', err);
@@ -117,7 +152,7 @@ const Admin = () => {
             new Date(rec.date).toLocaleDateString('en-GB'),
             rec.punch_in ? new Date(rec.punch_in).toLocaleTimeString() : '-',
             rec.punch_out ? new Date(rec.punch_out).toLocaleTimeString() : '-',
-            rec.punch_out ? 'Completed' : 'On Shift'
+            getRecStatus(rec)
         ]);
 
         const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
@@ -164,6 +199,24 @@ const Admin = () => {
     const formatTime = (timeString) => {
         if (!timeString) return '-';
         return new Date(timeString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    const getRecStatus = (record) => {
+        if (!record.punch_in) return 'Absent';
+        if (record.punch_out) return 'Completed';
+
+        const punchInHour = new Date(record.punch_in).getHours();
+        return punchInHour < 12 ? 'Morning Present' : 'Afternoon Present';
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'Completed': return 'bg-indigo-100 text-indigo-800 border border-indigo-200';
+            case 'Morning Present': return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+            case 'Afternoon Present': return 'bg-amber-100 text-amber-800 border border-amber-200';
+            case 'Absent': return 'bg-rose-100 text-rose-800 border border-rose-200';
+            default: return 'bg-slate-100 text-slate-800';
+        }
     };
 
     if (!isLoggedIn) {
@@ -423,8 +476,8 @@ const Admin = () => {
                                         <td className="px-6 py-4 text-emerald-700 font-mono text-sm font-bold">{formatTime(record.punch_in)}</td>
                                         <td className="px-6 py-4 text-rose-700 font-mono text-sm font-bold">{formatTime(record.punch_out)}</td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${record.punch_out ? 'bg-indigo-100 text-indigo-800 border border-indigo-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'}`}>
-                                                {record.punch_out ? 'Completed' : 'On Shift'}
+                                            <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusColor(getRecStatus(record))}`}>
+                                                {getRecStatus(record)}
                                             </span>
                                         </td>
                                     </tr>

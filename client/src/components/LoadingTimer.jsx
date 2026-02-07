@@ -21,7 +21,7 @@ const LoadingTimer = ({ isLoading }) => {
             // This prevents the popup from flickering on fast refreshes or navigations.
             delayTimer = setTimeout(() => {
                 setShowTimer(true);
-            }, 1000);
+            }, 3000);
 
             // Start counting immediately in background so if it DOES show, 
             // the time reflects the true wait time.
