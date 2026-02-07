@@ -236,7 +236,7 @@ const Punch = () => {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center min-h-[80vh] p-4"
         >
-            <LoadingTimer isLoading={!modelsLoaded || loadingData} />
+            <LoadingTimer isLoading={loadingData} />
             <div className="glass-card p-6 w-full max-w-2xl text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
 

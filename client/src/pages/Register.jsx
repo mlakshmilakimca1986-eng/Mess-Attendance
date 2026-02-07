@@ -163,7 +163,7 @@ const Register = () => {
             animate={{ opacity: 1, x: 0 }}
             className="flex flex-col items-center justify-center min-h-[80vh] p-4"
         >
-            <LoadingTimer isLoading={loading || !modelsLoaded} />
+            <LoadingTimer isLoading={loading} />
             <div className="glass-card p-4 sm:p-8 w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-1/2 h-full bg-indigo-500/5 -skew-x-12 translate-x-1/2 pointer-events-none" />
 
