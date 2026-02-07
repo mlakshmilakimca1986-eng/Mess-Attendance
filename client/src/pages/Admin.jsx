@@ -203,16 +203,31 @@ const Admin = () => {
 
     const getRecStatus = (record) => {
         if (!record.punch_in) return 'Absent';
-        if (record.punch_out) return 'Completed';
 
         const punchInHour = new Date(record.punch_in).getHours();
-        return punchInHour < 12 ? 'Morning Present' : 'Afternoon Present';
+
+        if (!record.punch_out) {
+            const recordDate = new Date(record.date).toISOString().split('T')[0];
+            const today = new Date().toISOString().split('T')[0];
+
+            if (recordDate === today) return 'On Shift';
+
+            return punchInHour < 12 ? 'Morning Present' : 'Afternoon Present';
+        }
+
+        const punchOutHour = new Date(record.punch_out).getHours();
+        if (punchInHour < 12 && punchOutHour >= 12) return 'Completed';
+        if (punchInHour < 12 && punchOutHour < 12) return 'Morning Present';
+        if (punchInHour >= 12 && punchOutHour >= 12) return 'Afternoon Present';
+
+        return 'Completed';
     };
 
     const getStatusColor = (status) => {
         switch (status) {
             case 'Completed': return 'bg-indigo-100 text-indigo-800 border border-indigo-200';
-            case 'Morning Present': return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+            case 'On Shift': return 'bg-emerald-100 text-emerald-800 border border-emerald-200 animate-pulse';
+            case 'Morning Present': return 'bg-teal-100 text-teal-800 border border-teal-200';
             case 'Afternoon Present': return 'bg-amber-100 text-amber-800 border border-amber-200';
             case 'Absent': return 'bg-rose-100 text-rose-800 border border-rose-200';
             default: return 'bg-slate-100 text-slate-800';
