@@ -132,10 +132,10 @@ const LoadingTimer = ({ isLoading }) => {
                                 }}
                             >
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.25rem', color: '#6d28d9', fontWeight: 'bold' }}>
-                                    <span>Server Waking Up 🚀</span>
+                                    <span>Server Delay... ⏳</span>
                                 </div>
                                 <p style={{ fontSize: '0.8rem', color: '#7c3aed', lineHeight: '1.4', margin: 0, fontWeight: '500' }}>
-                                    Free instance spin-up may delay requests by up to 50 seconds.
+                                    Dear Incharge, we request you to please wait for up to 50 seconds while the server completes loading.
                                 </p>
                             </motion.div>
                         )}
