@@ -4,6 +4,7 @@ import { Camera, RefreshCcw, CheckCircle, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE_URL } from '../config';
 import PinModal from '../components/PinModal';
+import LoadingTimer from '../components/LoadingTimer';
 
 const Punch = () => {
     const videoRef = useRef();
@@ -13,6 +14,7 @@ const Punch = () => {
     const [message, setMessage] = useState('Hands-free scanning active');
     const [lastPunchTime, setLastPunchTime] = useState(0);
     const [punchData, setPunchData] = useState(null);
+    const [loadingData, setLoadingData] = useState(true);
 
     const [deviceId, setDeviceId] = useState(localStorage.getItem('mess_attendance_device_id') || '');
     const [showPinModal, setShowPinModal] = useState(false);
@@ -139,6 +141,8 @@ const Punch = () => {
             } catch (err) {
                 console.error('Error fetching employees:', err);
                 setMessage(`Connection Error: ${err.message}. Please check internet.`);
+            } finally {
+                setLoadingData(false);
             }
         };
         fetchEmployees();
@@ -232,6 +236,7 @@ const Punch = () => {
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col items-center justify-center min-h-[80vh] p-4"
         >
+            <LoadingTimer isLoading={!modelsLoaded || loadingData} />
             <div className="glass-card p-6 w-full max-w-2xl text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
 

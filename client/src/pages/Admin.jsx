@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Clock, ArrowDownAz, Download, Lock, Mail, Key, LogOut, Search, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE_URL } from '../config';
+import LoadingTimer from '../components/LoadingTimer';
 
 const Admin = () => {
     const [attendance, setAttendance] = useState([]);
@@ -237,6 +238,7 @@ const Admin = () => {
 
     return (
         <div className="p-4 md:p-8 space-y-8 animate-fade">
+            <LoadingTimer isLoading={loading || loginLoading} />
             <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <div className="flex items-center gap-3">
                     <div className="h-8 w-8 bg-indigo-600 rounded-full flex items-center justify-center font-bold text-white shadow-lg">S</div>
