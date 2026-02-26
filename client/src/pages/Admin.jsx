@@ -30,32 +30,40 @@ const Admin = () => {
     useEffect(() => {
         let result = [...attendance];
 
-        // Generate Absent Records for Today
+        // 1. Identify which date(s) we should show a COMPLETE list (All Employees) for
+        // Usually, we want to see everyone for "Today" OR if a single specific day is selected.
         const todayStr = new Date().toISOString().split('T')[0];
+        let targetDates = [];
 
-        // Find employees who don't have a record for today
-        const employeesPresentToday = new Set(
-            attendance
-                .filter(rec => new Date(rec.date).toISOString().split('T')[0] === todayStr)
-                .map(rec => rec.employee_id)
-        );
+        if (!dateRange.start && !dateRange.end) {
+            targetDates = [todayStr]; // Default: Show everyone for Today
+        } else if (dateRange.start === dateRange.end && dateRange.start) {
+            targetDates = [dateRange.start]; // Show everyone for the selected single day
+        }
 
-        const absentRecords = employees
-            .filter(emp => !employeesPresentToday.has(emp.employee_id))
-            .map(emp => ({
-                id: `absent-${emp.employee_id}`, // temporary ID
+        // 2. Generate implicit Absent/Not Punched records for the target dates
+        targetDates.forEach(tDate => {
+            const presentIds = new Set(
+                attendance
+                    .filter(rec => new Date(rec.date).toISOString().split('T')[0] === tDate)
+                    .map(rec => rec.employee_id)
+            );
+
+            const missingEmployees = employees.filter(emp => !presentIds.has(emp.employee_id));
+
+            const absentRecords = missingEmployees.map(emp => ({
+                id: `auto-absent-${emp.employee_id}-${tDate}`,
                 employee_id: emp.employee_id,
                 name: emp.name,
-                date: todayStr,
+                date: tDate,
                 punch_in: null,
-                punch_out: null,
-                status: 'Absent'
+                punch_out: null
             }));
 
-        // Add absent records to the result
-        result = [...result, ...absentRecords];
+            result = [...result, ...absentRecords];
+        });
 
-        // Filter by Search Term
+        // 3. Filter by Search Term
         if (searchTerm) {
             const lowerTerm = searchTerm.toLowerCase();
             result = result.filter(rec =>
@@ -64,21 +72,24 @@ const Admin = () => {
             );
         }
 
-        // Filter by Date Range
+        // 4. Filter by Date Range (if set and not matching our "show all" logic)
         if (dateRange.start) {
-            const startDate = new Date(dateRange.start);
-            startDate.setHours(0, 0, 0, 0);
-            result = result.filter(rec => new Date(rec.date) >= startDate);
+            const start = new Date(dateRange.start);
+            start.setHours(0, 0, 0, 0);
+            result = result.filter(rec => new Date(rec.date) >= start);
         }
         if (dateRange.end) {
-            const endDate = new Date(dateRange.end);
-            endDate.setHours(23, 59, 59, 999); // Include the whole day
-            result = result.filter(rec => new Date(rec.date) <= endDate);
+            const end = new Date(dateRange.end);
+            end.setHours(23, 59, 59, 999);
+            result = result.filter(rec => new Date(rec.date) <= end);
         }
 
-        // Sort: Absent records for today should probably be at the top or mixed in by date
-        // Re-sort by date descending
-        result.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // 5. Sort: Date Descending, then Name
+        result.sort((a, b) => {
+            const dateDiff = new Date(b.date) - new Date(a.date);
+            if (dateDiff !== 0) return dateDiff;
+            return a.name.localeCompare(b.name);
+        });
 
         setFilteredAttendance(result);
     }, [attendance, employees, searchTerm, dateRange]);
@@ -213,39 +224,43 @@ const Admin = () => {
     };
 
     const getRecStatus = (record) => {
+        const recordDate = new Date(record.date).toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
+        const isPastDay = recordDate < today;
+
         if (!record.punch_in) {
-            const recordDate = new Date(record.date).toISOString().split('T')[0];
-            const today = new Date().toISOString().split('T')[0];
-            return recordDate === today ? 'Not Punched' : 'Absent';
+            return isPastDay ? 'Absent' : 'Yet to Punch';
         }
 
+        // We have a punch_in
         const punchInHour = new Date(record.punch_in).getHours();
 
         if (!record.punch_out) {
-            const recordDate = new Date(record.date).toISOString().split('T')[0];
-            const today = new Date().toISOString().split('T')[0];
-
             if (recordDate === today) return 'On Shift';
 
-            return punchInHour < 12 ? 'Morning Present' : 'Afternoon Present';
+            // For past days, if they only punched in but never out, it's a Half Day
+            return 'Half Day (No Out)';
         }
 
+        // We have both In and Out
         const punchOutHour = new Date(record.punch_out).getHours();
-        if (punchInHour < 12 && punchOutHour >= 12) return 'Completed';
-        if (punchInHour < 12 && punchOutHour < 12) return 'Morning Present';
-        if (punchInHour >= 12 && punchOutHour >= 12) return 'Afternoon Present';
 
-        return 'Completed';
+        // Logical check for full day vs half day (example: if they worked < 4 hours or similar)
+        // For now, specifically handling your request: In but no Out = Half Day.
+        // If they have both, it depends on time.
+        if (punchInHour < 12 && punchOutHour >= 12) return 'Completed';
+
+        return 'Present';
     };
 
     const getStatusColor = (status) => {
         switch (status) {
             case 'Completed': return 'bg-indigo-100 text-indigo-800 border border-indigo-200';
+            case 'Present': return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
             case 'On Shift': return 'bg-emerald-100 text-emerald-800 border border-emerald-200 animate-pulse';
-            case 'Morning Present': return 'bg-teal-100 text-teal-800 border border-teal-200';
-            case 'Afternoon Present': return 'bg-amber-100 text-amber-800 border border-amber-200';
-            case 'Absent': return 'bg-rose-100 text-rose-800 border border-rose-200';
-            case 'Not Punched': return 'bg-slate-100 text-slate-500 border border-slate-200';
+            case 'Half Day (No Out)': return 'bg-amber-100 text-amber-800 border border-amber-200 font-bold';
+            case 'Absent': return 'bg-rose-100 text-rose-800 border border-rose-200 font-black';
+            case 'Yet to Punch': return 'bg-slate-100 text-slate-500 border border-slate-200 italic';
             default: return 'bg-slate-100 text-slate-800';
         }
     };
@@ -339,13 +354,13 @@ const Admin = () => {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="glass-card p-6 flex items-center gap-4 border-l-4 border-l-indigo-500 bg-white/60">
                     <div className="bg-indigo-100 p-4 rounded-xl text-indigo-600">
                         <Users size={32} />
                     </div>
                     <div>
-                        <p className="text-slate-600 text-sm font-bold">Total Employees</p>
+                        <p className="text-slate-600 text-sm font-bold">Total Staff</p>
                         <h3 className="text-2xl font-bold text-slate-900">{stats.totalEmployees}</h3>
                     </div>
                 </div>
@@ -358,12 +373,21 @@ const Admin = () => {
                         <h3 className="text-2xl font-bold text-slate-900">{stats.presentToday}</h3>
                     </div>
                 </div>
-                <div className="glass-card p-6 flex items-center gap-4 border-l-4 border-l-rose-500 bg-white/60">
-                    <div className="bg-rose-100 p-4 rounded-xl text-rose-600">
+                <div className="glass-card p-6 flex items-center gap-4 border-l-4 border-l-slate-400 bg-white/60">
+                    <div className="bg-slate-100 p-4 rounded-xl text-slate-500">
                         <Clock size={32} />
                     </div>
                     <div>
-                        <p className="text-slate-600 text-sm font-bold">Average Work Hours</p>
+                        <p className="text-slate-600 text-sm font-bold">Pending Attendance</p>
+                        <h3 className="text-2xl font-bold text-slate-900">{stats.totalEmployees - stats.presentToday}</h3>
+                    </div>
+                </div>
+                <div className="glass-card p-6 flex items-center gap-4 border-l-4 border-l-amber-500 bg-white/60">
+                    <div className="bg-amber-100 p-4 rounded-xl text-amber-600">
+                        <Clock size={32} />
+                    </div>
+                    <div>
+                        <p className="text-slate-600 text-sm font-bold">Avg. Shift</p>
                         <h3 className="text-2xl font-bold text-slate-900">{stats.avgWorkHours}</h3>
                     </div>
                 </div>

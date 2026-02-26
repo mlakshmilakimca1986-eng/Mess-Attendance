@@ -277,18 +277,23 @@ app.post('/api/attendance', async (req, res) => {
 // Admin Analytics
 app.get('/api/analytics', async (req, res) => {
     try {
-        const [rows] = await pool.query(`
+        const today = new Date().toISOString().split('T')[0];
+
+        // Fetch all attendance records
+        const [attendanceRows] = await pool.query(`
             SELECT a.*, e.name 
             FROM attendance a 
             JOIN employees e ON a.employee_id = e.employee_id 
             ORDER BY a.date DESC, a.punch_in DESC
         `);
-        const today = new Date().toISOString().split('T')[0];
+
+        // Stats
         const [[{ totalEmployees }]] = await pool.query('SELECT COUNT(*) as totalEmployees FROM employees');
         const [[{ presentToday }]] = await pool.query(
             'SELECT COUNT(DISTINCT employee_id) as presentToday FROM attendance WHERE date = ?',
             [today]
         );
+
         const [completedShifts] = await pool.query('SELECT punch_in, punch_out FROM attendance WHERE punch_out IS NOT NULL');
 
         let avgWorkMinutes = 0;
@@ -301,7 +306,7 @@ app.get('/api/analytics', async (req, res) => {
         }
 
         res.json({
-            attendance: rows,
+            attendance: attendanceRows,
             stats: {
                 totalEmployees,
                 presentToday,
