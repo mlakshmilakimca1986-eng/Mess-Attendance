@@ -235,7 +235,7 @@ const Punch = () => {
                     } else {
                         setStatus('error');
                         setMessage(result.error || 'Check authorization.');
-                        setTimeout(() => setStatus(null), 3000);
+                        setTimeout(() => setStatus(null), 5000);
                     }
                 } else {
                     setMessage('Scanning... Try adjusting lighting');

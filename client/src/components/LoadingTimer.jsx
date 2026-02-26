@@ -17,11 +17,11 @@ const LoadingTimer = ({ isLoading }) => {
 
         if (isLoading) {
             setSeconds(0);
-            // Don't show immediately. Wait for 3 seconds of "loading" state.
+            // Don't show immediately. Wait for 5 seconds of "loading" state.
             // This prevents the popup from flickering on fast refreshes or navigations.
             delayTimer = setTimeout(() => {
                 setShowTimer(true);
-            }, 3000);
+            }, 5000);
 
             // Start counting immediately in background so if it DOES show, 
             // the time reflects the true wait time.
