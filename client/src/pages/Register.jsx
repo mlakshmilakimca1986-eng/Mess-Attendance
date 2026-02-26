@@ -82,20 +82,39 @@ const Register = () => {
         loadModels();
     }, []);
 
-    const startVideo = () => {
+    const startVideo = async () => {
         setIsStreaming(false);
-        navigator.mediaDevices
-            .getUserMedia({ video: { facingMode: 'user' } })
-            .then((stream) => {
+        try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('Your browser does not support camera access or you are not using a secure (HTTPS) connection.');
+            }
+
+            const constraints = {
+                video: {
+                    facingMode: 'user',
+                    width: { ideal: 640 },
+                    height: { ideal: 480 }
+                }
+            };
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
                     setIsStreaming(true);
                 }
-            })
-            .catch((err) => {
-                console.error(err);
-                setMessage('Camera access denied. Please check permissions.');
-            });
+            } catch (err) {
+                console.warn('Could not open front camera with specific constraints, trying basic video...', err);
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    setIsStreaming(true);
+                }
+            }
+        } catch (err) {
+            console.error('Final camera error:', err);
+            setMessage(`Camera access error: ${err.message}. Please check permissions.`);
+        }
     };
 
     const captureFace = async () => {

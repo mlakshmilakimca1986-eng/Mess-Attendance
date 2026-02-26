@@ -342,10 +342,18 @@ const Punch = () => {
                     </AnimatePresence>
                 </div>
 
-                <div className="mb-0 min-h-[4rem] flex items-center justify-center">
+                <div className="mb-0 min-h-[4rem] flex flex-col items-center justify-center gap-2">
                     <p className={`text-xl font-bold transition-all duration-300 ${status === 'error' ? 'text-rose-600 scale-110' : status === 'success' ? 'text-emerald-600 scale-110' : 'text-slate-700'}`}>
                         {message}
                     </p>
+                    {message.includes('Camera error') && (
+                        <button
+                            onClick={startVideo}
+                            className="text-indigo-600 font-bold underline hover:text-indigo-800 transition-colors"
+                        >
+                            Retry Camera
+                        </button>
+                    )}
                 </div>
 
                 <div className="mt-8 flex flex-col items-center gap-4">
