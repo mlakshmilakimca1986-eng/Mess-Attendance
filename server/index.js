@@ -89,6 +89,10 @@ app.get('/ping', (req, res) => {
     res.status(200).send('pong');
 });
 
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+});
+
 // Register Employee
 app.post('/api/employees', async (req, res) => {
     const { employeeId, name, faceDescriptor, deviceId } = req.body;

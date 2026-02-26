@@ -309,6 +309,7 @@ const Register = () => {
                         autoPlay
                         muted
                         playsInline
+                        onCanPlay={() => videoRef.current.play()}
                         className="w-full h-full object-cover"
                     />
 

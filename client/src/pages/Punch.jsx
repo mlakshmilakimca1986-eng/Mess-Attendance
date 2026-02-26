@@ -269,6 +269,7 @@ const Punch = () => {
                         autoPlay
                         muted
                         playsInline
+                        onCanPlay={() => videoRef.current.play()}
                         className="w-full h-full object-cover"
                     />
 
@@ -289,7 +290,10 @@ const Punch = () => {
                                 className="absolute inset-0 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm z-20"
                             >
                                 <RefreshCcw className="animate-spin mr-2" />
-                                <span>Initializing AI...</span>
+                                <span className="flex flex-col items-center">
+                                    <span>Initializing AI...</span>
+                                    <span className="text-[10px] opacity-50">Models: TinyFace, Landmarks, Recog</span>
+                                </span>
                             </motion.div>
                         )}
 
