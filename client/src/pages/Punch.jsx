@@ -82,16 +82,37 @@ const Punch = () => {
         loadModels();
     }, []);
 
-    const startVideo = () => {
-        navigator.mediaDevices
-            .getUserMedia({ video: { facingMode: 'user' } })
-            .then((stream) => {
-                videoRef.current.srcObject = stream;
-            })
-            .catch((err) => {
-                console.error(err);
-                setMessage('Camera error: Please refresh.');
-            });
+    const startVideo = async () => {
+        try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('Your browser does not support camera access or you are not using a secure (HTTPS) connection.');
+            }
+
+            // Try with 'user' constraint (front camera)
+            const constraints = {
+                video: {
+                    facingMode: 'user',
+                    width: { ideal: 640 },
+                    height: { ideal: 480 }
+                }
+            };
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                }
+            } catch (err) {
+                console.warn('Could not open front camera with specific constraints, trying basic video...', err);
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                }
+            }
+        } catch (err) {
+            console.error('Final camera error:', err);
+            setMessage(`Camera error: ${err.message}. Please check permissions and refresh.`);
+        }
     };
 
     useEffect(() => {

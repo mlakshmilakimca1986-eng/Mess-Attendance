@@ -84,6 +84,11 @@ app.get('/', (req, res) => {
     res.send('Mess Attendance API');
 });
 
+// Health check for UptimeRobot
+app.get('/ping', (req, res) => {
+    res.status(200).send('pong');
+});
+
 // Register Employee
 app.post('/api/employees', async (req, res) => {
     const { employeeId, name, faceDescriptor, deviceId } = req.body;
