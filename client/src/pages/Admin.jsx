@@ -31,21 +31,36 @@ const Admin = () => {
         let result = [...attendance];
 
         // 1. Identify which date(s) we should show a COMPLETE list (All Employees) for
-        // Usually, we want to see everyone for "Today" OR if a single specific day is selected.
         const todayStr = new Date().toISOString().split('T')[0];
         let targetDates = [];
 
         if (!dateRange.start && !dateRange.end) {
-            targetDates = [todayStr]; // Default: Show everyone for Today
-        } else if (dateRange.start === dateRange.end && dateRange.start) {
-            targetDates = [dateRange.start]; // Show everyone for the selected single day
+            // Default: Show everyone for the last 5 days
+            for (let i = 0; i < 5; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                targetDates.push(d.toISOString().split('T')[0]);
+            }
+        } else if (dateRange.start && dateRange.end) {
+            // Show everyone for the entire selected range (capped at 31 days)
+            let current = new Date(dateRange.start);
+            const end = new Date(dateRange.end);
+            let count = 0;
+            while (current <= end && count < 31) {
+                targetDates.push(current.toISOString().split('T')[0]);
+                current.setDate(current.getDate() + 1);
+                count++;
+            }
         }
 
-        // 2. Generate implicit Absent/Not Punched records for the target dates
+        // 2. Generate implicit Absent/Not Punched/WO records for the target dates
         targetDates.forEach(tDate => {
             const presentIds = new Set(
                 attendance
-                    .filter(rec => new Date(rec.date).toISOString().split('T')[0] === tDate)
+                    .filter(rec => {
+                        const recDate = new Date(rec.date).toISOString().split('T')[0];
+                        return recDate === tDate;
+                    })
                     .map(rec => rec.employee_id)
             );
 
@@ -228,7 +243,11 @@ const Admin = () => {
         const today = new Date().toISOString().split('T')[0];
         const isPastDay = recordDate < today;
 
+        // Check if it's Sunday
+        const isSunday = new Date(record.date).getUTCDay() === 0;
+
         if (!record.punch_in) {
+            if (isSunday) return 'WO';
             return isPastDay ? 'Absent' : 'Yet to Punch';
         }
 
@@ -239,6 +258,8 @@ const Admin = () => {
             if (recordDate === today) return 'On Shift';
 
             // For past days, if they only punched in but never out, it's a Half Day
+            // Except on Sunday, if they punched in, it counts as Present/Completed
+            if (isSunday) return 'Completed';
             return 'Half Day (No Out)';
         }
 
@@ -261,6 +282,7 @@ const Admin = () => {
             case 'Half Day (No Out)': return 'bg-amber-100 text-amber-800 border border-amber-200 font-bold';
             case 'Absent': return 'bg-rose-100 text-rose-800 border border-rose-200 font-black';
             case 'Yet to Punch': return 'bg-slate-100 text-slate-500 border border-slate-200 italic';
+            case 'WO': return 'bg-indigo-50 text-indigo-400 border border-indigo-100 font-bold';
             default: return 'bg-slate-100 text-slate-800';
         }
     };
