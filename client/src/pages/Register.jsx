@@ -16,7 +16,7 @@ const Register = () => {
     const [modelsLoaded, setModelsLoaded] = useState(false);
     const [message, setMessage] = useState('');
     const [isStreaming, setIsStreaming] = useState(false);
-    const [facingMode, setFacingMode] = useState('environment'); // Default to BACK camera for registration
+    const [facingMode, setFacingMode] = useState('user'); // Reverting to user (front) camera only
 
     // Generate or retrieve a unique device ID (Simulation of IMEI requirement)
     const [deviceId, setDeviceId] = useState(localStorage.getItem('mess_attendance_device_id') || '');
@@ -130,10 +130,11 @@ const Register = () => {
     };
 
     const toggleCamera = () => {
-        setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+        // Feature Removed: Reverting to Front Camera Only
     };
 
     useEffect(() => {
+        // Reverting to single-shot start video
         if (isStreaming) {
             startVideo();
         }
@@ -346,16 +347,7 @@ const Register = () => {
                         className="w-full h-full object-cover"
                     />
 
-                    {/* Camera Toggle Button (Only on Registration) */}
-                    {isStreaming && (
-                        <button
-                            onClick={toggleCamera}
-                            className="absolute bottom-4 right-4 z-40 p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-white hover:bg-white/40 transition-all shadow-lg active:scale-95"
-                            title={facingMode === 'user' ? 'Switch to Back Camera' : 'Switch to Front Camera'}
-                        >
-                            <SwitchCamera size={24} />
-                        </button>
-                    )}
+                    {/* Camera Toggle Removed - Using Front Only */}
 
                     <AnimatePresence>
                         {!modelsLoaded && (
