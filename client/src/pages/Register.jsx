@@ -90,17 +90,21 @@ const Register = () => {
                 throw new Error('Your browser does not support camera access or you are not using a secure (HTTPS) connection.');
             }
 
-            // Stop existing stream if any
+            // Stop and NULL the current stream to fully release the hardware
             if (videoRef.current && videoRef.current.srcObject) {
-                const tracks = videoRef.current.srcObject.getTracks();
-                tracks.forEach(track => track.stop());
+                const stream = videoRef.current.srcObject;
+                stream.getTracks().forEach(track => track.stop());
+                videoRef.current.srcObject = null;
             }
+
+            // Add a tiny delay for mobile hardware to reset
+            await new Promise(resolve => setTimeout(resolve, 300));
 
             const constraints = {
                 video: {
-                    facingMode: facingMode,
-                    width: { ideal: 640 },
-                    height: { ideal: 480 }
+                    facingMode: { ideal: facingMode },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
                 }
             };
 
@@ -111,8 +115,10 @@ const Register = () => {
                     setIsStreaming(true);
                 }
             } catch (err) {
-                console.warn('Could not open camera with specific constraints, trying basic video...', err);
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                console.warn('Advanced constraints failed, trying basic facingMode...', err);
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: facingMode }
+                });
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
                     setIsStreaming(true);
