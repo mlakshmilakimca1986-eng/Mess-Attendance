@@ -130,9 +130,9 @@ app.post('/api/employees', async (req, res) => {
         const [[existingEmp]] = await pool.query('SELECT * FROM employees WHERE employee_id = ?', [employeeId]);
 
         if (existingEmp) {
-            // Update existing employee
+            // Update existing employee (Reset created_at so attendance starts from today)
             await pool.query(
-                'UPDATE employees SET name = ?, face_descriptor = ?, device_id = ? WHERE employee_id = ?',
+                'UPDATE employees SET name = ?, face_descriptor = ?, device_id = ?, created_at = CURRENT_TIMESTAMP WHERE employee_id = ?',
                 [name, JSON.stringify(faceDescriptor), deviceId, employeeId]
             );
             return res.status(200).json({ message: 'Employee updated successfully' });
