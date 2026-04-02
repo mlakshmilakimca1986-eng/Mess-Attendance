@@ -77,12 +77,15 @@ const Admin = () => {
                 // 1. Employee is already present
                 if (presentIds.has(emp.employee_id)) return false;
 
-                // 2. Only show "Absent" if they were actually registered on or before this day (tDate)
+                // 2. Only show "Absent" if they were actually registered on or BEFORE this day (tDate)
                 if (emp.created_at) {
                     const regDate = getLocalDateString(emp.created_at);
                     return regDate <= tDate;
                 }
-                return true; // Fallback for data safety
+                
+                // 3. Fail-safe: If we can't determine registration date, don't assume they were absent on historical days
+                const todayStr = getLocalDateString(new Date());
+                return tDate === todayStr; 
             });
 
             const absentRecords = missingEmployees.map(emp => ({
