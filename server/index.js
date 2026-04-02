@@ -89,8 +89,21 @@ app.get('/ping', (req, res) => {
     res.status(200).send('pong');
 });
 
-app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'ok' });
+app.get('/api/health', async (req, res) => {
+    try {
+        // Quick DB check to ensure functional connectivity
+        if (pool) {
+            await pool.query('SELECT 1');
+            return res.status(200).json({ 
+                status: 'ok', 
+                database: 'connected',
+                timestamp: new Date().toISOString()
+            });
+        }
+        res.status(200).json({ status: 'ok', database: 'initializing' });
+    } catch (err) {
+        res.status(503).json({ status: 'error', database: 'error', message: err.message });
+    }
 });
 
 // Register Employee

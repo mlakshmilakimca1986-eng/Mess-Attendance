@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import * as faceapi from 'face-api.js';
-import { User, IdCard, Camera, CheckCircle, RefreshCcw } from 'lucide-react';
+import { User, IdCard, Camera, CheckCircle, RefreshCcw, SwitchCamera } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE_URL } from '../config';
 import PinModal from '../components/PinModal';
@@ -16,6 +16,7 @@ const Register = () => {
     const [modelsLoaded, setModelsLoaded] = useState(false);
     const [message, setMessage] = useState('');
     const [isStreaming, setIsStreaming] = useState(false);
+    const [facingMode, setFacingMode] = useState('user');
 
     // Generate or retrieve a unique device ID (Simulation of IMEI requirement)
     const [deviceId, setDeviceId] = useState(localStorage.getItem('mess_attendance_device_id') || '');
@@ -89,9 +90,15 @@ const Register = () => {
                 throw new Error('Your browser does not support camera access or you are not using a secure (HTTPS) connection.');
             }
 
+            // Stop existing stream if any
+            if (videoRef.current && videoRef.current.srcObject) {
+                const tracks = videoRef.current.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+
             const constraints = {
                 video: {
-                    facingMode: 'user',
+                    facingMode: facingMode,
                     width: { ideal: 640 },
                     height: { ideal: 480 }
                 }
@@ -104,7 +111,7 @@ const Register = () => {
                     setIsStreaming(true);
                 }
             } catch (err) {
-                console.warn('Could not open front camera with specific constraints, trying basic video...', err);
+                console.warn('Could not open camera with specific constraints, trying basic video...', err);
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
@@ -116,6 +123,16 @@ const Register = () => {
             setMessage(`Camera access error: ${err.message}. Please check permissions.`);
         }
     };
+
+    const toggleCamera = () => {
+        setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+    };
+
+    useEffect(() => {
+        if (isStreaming) {
+            startVideo();
+        }
+    }, [facingMode]);
 
     const captureFace = async () => {
         if (!videoRef.current) return;
@@ -312,6 +329,15 @@ const Register = () => {
                         onCanPlay={() => videoRef.current.play()}
                         className="w-full h-full object-cover"
                     />
+
+                    {/* Camera Toggle Button */}
+                    <button
+                        onClick={toggleCamera}
+                        className="absolute bottom-4 right-4 z-40 p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-white hover:bg-white/40 transition-all shadow-lg active:scale-95"
+                        title={facingMode === 'user' ? 'Switch to Back Camera' : 'Switch to Front Camera'}
+                    >
+                        <SwitchCamera size={24} />
+                    </button>
 
                     <AnimatePresence>
                         {!modelsLoaded && (
