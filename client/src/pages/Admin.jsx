@@ -30,16 +30,25 @@ const Admin = () => {
     useEffect(() => {
         let result = [...attendance];
 
+        // Helper to get YYYY-MM-DD in local time
+        const getLocalDateString = (dateObj) => {
+            const d = new Date(dateObj);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
         // 1. Identify which date(s) we should show a COMPLETE list (All Employees) for
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = getLocalDateString(new Date());
         let targetDates = [];
 
         if (!dateRange.start && !dateRange.end) {
-            // Default: Show everyone for the last 5 days
+            // Default: Show everyone for the last 5 days (in LOCAL time)
             for (let i = 0; i < 5; i++) {
                 const d = new Date();
                 d.setDate(d.getDate() - i);
-                targetDates.push(d.toISOString().split('T')[0]);
+                targetDates.push(getLocalDateString(d));
             }
         } else if (dateRange.start && dateRange.end) {
             // Show everyone for the entire selected range (capped at 31 days)
@@ -47,7 +56,7 @@ const Admin = () => {
             const end = new Date(dateRange.end);
             let count = 0;
             while (current <= end && count < 31) {
-                targetDates.push(current.toISOString().split('T')[0]);
+                targetDates.push(getLocalDateString(current));
                 current.setDate(current.getDate() + 1);
                 count++;
             }
@@ -58,13 +67,23 @@ const Admin = () => {
             const presentIds = new Set(
                 attendance
                     .filter(rec => {
-                        const recDate = new Date(rec.date).toISOString().split('T')[0];
+                        const recDate = getLocalDateString(rec.date);
                         return recDate === tDate;
                     })
                     .map(rec => rec.employee_id)
             );
 
-            const missingEmployees = employees.filter(emp => !presentIds.has(emp.employee_id));
+            const missingEmployees = employees.filter(emp => {
+                // 1. Employee is already present
+                if (presentIds.has(emp.employee_id)) return false;
+
+                // 2. Only show "Absent" if they were actually registered on or before this day (tDate)
+                if (emp.created_at) {
+                    const regDate = getLocalDateString(emp.created_at);
+                    return regDate <= tDate;
+                }
+                return true; // Fallback for data safety
+            });
 
             const absentRecords = missingEmployees.map(emp => ({
                 id: `auto-absent-${emp.employee_id}-${tDate}`,
@@ -239,8 +258,16 @@ const Admin = () => {
     };
 
     const getRecStatus = (record) => {
-        const recordDate = new Date(record.date).toISOString().split('T')[0];
-        const today = new Date().toISOString().split('T')[0];
+        const getLocalDateString = (dateObj) => {
+            const d = new Date(dateObj);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        const recordDate = getLocalDateString(record.date);
+        const today = getLocalDateString(new Date());
         const isPastDay = recordDate < today;
 
         // Check if it's Sunday
