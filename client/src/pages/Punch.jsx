@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as faceapi from 'face-api.js';
-import { Camera, RefreshCcw, CheckCircle, XCircle, SwitchCamera } from 'lucide-react';
+import { Camera, RefreshCcw, CheckCircle, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE_URL } from '../config';
 import PinModal from '../components/PinModal';
@@ -15,7 +15,6 @@ const Punch = () => {
     const [lastPunchTime, setLastPunchTime] = useState(0);
     const [punchData, setPunchData] = useState(null);
     const [loadingData, setLoadingData] = useState(true);
-    const [facingMode, setFacingMode] = useState('user');
 
     const [deviceId, setDeviceId] = useState(localStorage.getItem('mess_attendance_device_id') || '');
     const [showPinModal, setShowPinModal] = useState(false);
@@ -89,21 +88,12 @@ const Punch = () => {
                 throw new Error('Your browser does not support camera access or you are not using a secure (HTTPS) connection.');
             }
 
-            // Stop and NULL the current stream to fully release the hardware
-            if (videoRef.current && videoRef.current.srcObject) {
-                const stream = videoRef.current.srcObject;
-                stream.getTracks().forEach(track => track.stop());
-                videoRef.current.srcObject = null;
-            }
-
-            // Add a tiny delay for mobile hardware to reset
-            await new Promise(resolve => setTimeout(resolve, 300));
-
+            // Try with 'user' constraint (front camera)
             const constraints = {
                 video: {
-                    facingMode: { ideal: facingMode },
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
+                    facingMode: 'user',
+                    width: { ideal: 640 },
+                    height: { ideal: 480 }
                 }
             };
 
@@ -113,10 +103,8 @@ const Punch = () => {
                     videoRef.current.srcObject = stream;
                 }
             } catch (err) {
-                console.warn('Advanced constraints failed, trying basic facingMode...', err);
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: facingMode }
-                });
+                console.warn('Could not open front camera with specific constraints, trying basic video...', err);
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
                 }
@@ -127,15 +115,11 @@ const Punch = () => {
         }
     };
 
-    const toggleCamera = () => {
-        setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
-    };
-
     useEffect(() => {
         if (modelsLoaded) {
             startVideo();
         }
-    }, [modelsLoaded, facingMode]);
+    }, [modelsLoaded]);
 
     const [employees, setEmployees] = useState([]);
 
@@ -288,15 +272,6 @@ const Punch = () => {
                         onCanPlay={() => videoRef.current.play()}
                         className="w-full h-full object-cover"
                     />
-
-                    {/* Camera Toggle Button */}
-                    <button
-                        onClick={toggleCamera}
-                        className="absolute bottom-4 right-4 z-40 p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-white hover:bg-white/40 transition-all shadow-lg active:scale-95"
-                        title={facingMode === 'user' ? 'Switch to Back Camera' : 'Switch to Front Camera'}
-                    >
-                        <SwitchCamera size={24} />
-                    </button>
 
                     {/* Scanning Animation */}
                     {detecting && (

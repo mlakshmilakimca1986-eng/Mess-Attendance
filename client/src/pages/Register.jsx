@@ -16,7 +16,7 @@ const Register = () => {
     const [modelsLoaded, setModelsLoaded] = useState(false);
     const [message, setMessage] = useState('');
     const [isStreaming, setIsStreaming] = useState(false);
-    const [facingMode, setFacingMode] = useState('user');
+    const [facingMode, setFacingMode] = useState('environment'); // Default to BACK camera for registration
 
     // Generate or retrieve a unique device ID (Simulation of IMEI requirement)
     const [deviceId, setDeviceId] = useState(localStorage.getItem('mess_attendance_device_id') || '');
@@ -87,17 +87,17 @@ const Register = () => {
         setIsStreaming(false);
         try {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                throw new Error('Your browser does not support camera access or you are not using a secure (HTTPS) connection.');
+                throw new Error('Camera access not supported by browser.');
             }
 
-            // Stop and NULL the current stream to fully release the hardware
+            // RELEASE existing camera first
             if (videoRef.current && videoRef.current.srcObject) {
                 const stream = videoRef.current.srcObject;
                 stream.getTracks().forEach(track => track.stop());
                 videoRef.current.srcObject = null;
             }
 
-            // Add a tiny delay for mobile hardware to reset
+            // Hardware reset delay
             await new Promise(resolve => setTimeout(resolve, 300));
 
             const constraints = {
@@ -113,15 +113,17 @@ const Register = () => {
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
                     setIsStreaming(true);
+                    setMessage('');
                 }
             } catch (err) {
-                console.warn('Advanced constraints failed, trying basic facingMode...', err);
+                console.warn('Advanced camera constraints failed, trying basic...', err);
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: facingMode }
                 });
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
                     setIsStreaming(true);
+                    setMessage('');
                 }
             }
         } catch (err) {
@@ -317,7 +319,7 @@ const Register = () => {
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: 'auto' }}
                                     exit={{ opacity: 0, height: 0 }}
-                                    className={`text-center pt-2 ${message.includes('success') ? 'text-green-400' : 'text-rose-400'}`}
+                                    className={`text-center pt-2 font-bold ${message.includes('success') ? 'text-green-400' : 'text-rose-400'}`}
                                 >
                                     {message}
                                 </motion.p>
@@ -336,14 +338,16 @@ const Register = () => {
                         className="w-full h-full object-cover"
                     />
 
-                    {/* Camera Toggle Button */}
-                    <button
-                        onClick={toggleCamera}
-                        className="absolute bottom-4 right-4 z-40 p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-white hover:bg-white/40 transition-all shadow-lg active:scale-95"
-                        title={facingMode === 'user' ? 'Switch to Back Camera' : 'Switch to Front Camera'}
-                    >
-                        <SwitchCamera size={24} />
-                    </button>
+                    {/* Camera Toggle Button (Only on Registration) */}
+                    {isStreaming && (
+                        <button
+                            onClick={toggleCamera}
+                            className="absolute bottom-4 right-4 z-40 p-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-white hover:bg-white/40 transition-all shadow-lg active:scale-95"
+                            title={facingMode === 'user' ? 'Switch to Back Camera' : 'Switch to Front Camera'}
+                        >
+                            <SwitchCamera size={24} />
+                        </button>
+                    )}
 
                     <AnimatePresence>
                         {!modelsLoaded && (
