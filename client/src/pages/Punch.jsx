@@ -119,6 +119,12 @@ const Punch = () => {
         if (modelsLoaded) {
             startVideo();
         }
+        // Cleanup function to stop camera when leaving the page
+        return () => {
+            if (videoRef.current && videoRef.current.srcObject) {
+                videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+            }
+        };
     }, [modelsLoaded]);
 
     const [employees, setEmployees] = useState([]);

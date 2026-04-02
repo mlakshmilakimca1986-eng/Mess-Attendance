@@ -97,14 +97,13 @@ const Register = () => {
                 videoRef.current.srcObject = null;
             }
 
-            // Hardware reset delay
-            await new Promise(resolve => setTimeout(resolve, 300));
+            // Hardware reset delay - increased to 500ms
+            await new Promise(resolve => setTimeout(resolve, 500));
 
+            // Simplified constraints for maximum compatibility
             const constraints = {
                 video: {
-                    facingMode: { ideal: facingMode },
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
+                    facingMode: facingMode // Using direct string for compatibility
                 }
             };
 
@@ -116,10 +115,8 @@ const Register = () => {
                     setMessage('');
                 }
             } catch (err) {
-                console.warn('Advanced camera constraints failed, trying basic...', err);
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: facingMode }
-                });
+                console.warn('FacingMode constraint failed, trying basic video...', err);
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
                     setIsStreaming(true);
@@ -141,6 +138,17 @@ const Register = () => {
             startVideo();
         }
     }, [facingMode]);
+
+    // Cleanup function when leaving the page
+    useEffect(() => {
+        return () => {
+            if (videoRef.current && videoRef.current.srcObject) {
+                const stream = videoRef.current.srcObject;
+                stream.getTracks().forEach(track => track.stop());
+                videoRef.current.srcObject = null;
+            }
+        };
+    }, []);
 
     const captureFace = async () => {
         if (!videoRef.current) return;
